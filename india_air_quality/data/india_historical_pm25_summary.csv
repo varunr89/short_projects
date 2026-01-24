@@ -1,0 +1,12 @@
+year,scope,pm25_avg,unit,notes,source
+1998,109 Indian cities,25.1,µg/m³,Mean ± 8.2 SD,Chemosphere 2020
+2015,109 Indian cities,43.1,µg/m³,Mean ± 11.7 SD (71.4% increase from 1998),Chemosphere 2020
+2000-2019,India population-weighted,57.3,µg/m³,5-95th percentile: 16.8-86.9,Lancet Planetary Health 2024
+1998-1999,India domain average,81,µg/m³,Satellite reanalysis,UrbanEmissions RSC 2022
+2000-2009,India domain average,102.3,µg/m³,Satellite reanalysis,UrbanEmissions RSC 2022
+2010-2019,India domain average,119.7,µg/m³,Satellite reanalysis,UrbanEmissions RSC 2022
+2020-2021,India domain average,115.0,µg/m³,Satellite reanalysis,UrbanEmissions RSC 2022
+2022,New Delhi,88.67,µg/m³,Population-weighted average,Science Advances 2024
+2022,Mumbai,declined 10%,µg/m³,From 2016-2018 peak,Science Advances 2024
+2023,India national,54.4,µg/m³,Annual average,Statista/IQAir
+2024,India national,50.6,µg/m³,Annual average (5th globally),IQAir World AQ Report

@@ -1,0 +1,14 @@
+year,city,pm25_annual_avg,pm25_5th_pctl,pm25_95th_pctl,source
+1999,Delhi,126,42,309,UrbanEmissions/MDPI Review 2023
+2000,Delhi,111,39,216,UrbanEmissions/MDPI Review 2023
+2001,Delhi,110,36,246,UrbanEmissions/MDPI Review 2023
+2002,Delhi,165,79,284,UrbanEmissions/MDPI Review 2023
+2003,Delhi,154,60,285,UrbanEmissions/MDPI Review 2023
+2004,Delhi,135,58,227,UrbanEmissions/MDPI Review 2023
+2005,Delhi,154,58,286,UrbanEmissions/MDPI Review 2023
+2006,Delhi,127,58,247,UrbanEmissions/MDPI Review 2023
+2009,Delhi,95,,,"AAQR Long-term Analysis"
+2013,Delhi,153,,,Wikipedia/Air pollution in Delhi
+2014,Delhi,154,,,AAQR Long-term Analysis (highest)
+2022,Delhi,89,,,IQAir 2024 Report
+2023,Delhi,92,,,IQAir 2024 Report
