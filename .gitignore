@@ -1,0 +1,12 @@
+# Data
+king-county-housing-heatmap/data/raw/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+dist/
+
+# Environment
+.env
+*.log
