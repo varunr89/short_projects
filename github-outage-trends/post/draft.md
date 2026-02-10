@@ -51,3 +51,12 @@ The Azure migration narrative is convenient but wrong for the broader trend. The
 The dataset was scraped from githubstatus.com/history using Playwright to render the JavaScript-heavy pages. The code is available on [GitHub](https://github.com/varunr89/short_projects).
 
 A few things to keep in mind: pre-2019 incidents do not have resolution timestamps, so duration analysis is only valid from 2019 onward. Component categorization is based on keyword matching, which is imperfect. The status page may also report incidents differently over time, meaning that more transparency could account for some of the increase rather than more actual outages. And the half-migrated state is real. It is fair to attribute some of the February 2026 outages to migration complexity, just not the multi-year trend.
+
+### Sources
+
+- **Incident data:** [GitHub Status - Incident History](https://www.githubstatus.com/history) (1,234 incidents, Sept 2013 to Feb 2026)
+- **Actions GA (Nov 2019):** [GitHub Actions for Azure is now generally available](https://azure.microsoft.com/en-us/blog/github-actions-for-azure-is-now-generally-available/) (Microsoft Azure Blog)
+- **Codespaces GA (Aug 2021):** [Codespaces is generally available for Team and Enterprise](https://github.blog/changelog/2021-08-11-codespaces-is-generally-available-for-team-and-enterprise/) (GitHub Blog Changelog)
+- **Copilot GA (Jun 2022):** [GitHub Copilot is generally available](https://news.ycombinator.com/item?id=31825742) (Hacker News discussion, Jun 21 2022)
+- **CTO memo on Azure migration (Oct 2025):** [GitHub Pauses Feature Development for 'Existential' Migration to Azure](https://winbuzzer.com/2025/10/09/github-pauses-feature-development-for-existential-migration-to-azure-xcxwbn/) (WinBuzzer); see also [The New Stack](https://thenewstack.io/github-will-prioritize-migrating-to-azure-over-feature-development/) and [TechBuzz](https://www.techbuzz.ai/articles/github-s-azure-migration-signals-end-of-independence-era)
+- **Analysis code:** [github.com/varunr89/short_projects](https://github.com/varunr89/short_projects)
