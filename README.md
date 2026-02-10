@@ -1,19 +1,28 @@
-short_projects
-==============================
+# short_projects
 
-Miscellaneous set of short projects/demonstrations
+A collection of short analysis projects, each resulting in a blog post with findings and visualizations.
 
-Project Organization
-------------
+## Project Index
 
-    ├── LICENSE
-    ├── README.md          <- The top-level README for developers using this project.
-    ├── levelsdotfyi_scraper.ipynb          <- Demonstrator of using selenium to scrape salary data from level.fyi
+| Project | Description | Status |
+|---------|-------------|--------|
+| [levelsdotfyi-scraper](levelsdotfyi-scraper/) | Scraping salary data from levels.fyi using Selenium | In progress |
+| [india-air-quality](india-air-quality/) | PM2.5 and AQI analysis across 277 Indian cities | In progress |
+| [king-county-housing-heatmap](king-county-housing-heatmap/) | Interactive housing cost heatmap for King County, WA | In progress |
 
+## Structure
 
+Each project follows a standard layout:
 
-Summary of Results
-==============================
+```
+<project-name>/
+├── README.md              <- Goal, data sources, key findings
+├── data/                  <- Raw and processed data
+├── notebooks/             <- Jupyter notebooks and analysis scripts
+├── charts/                <- Generated visualizations
+├── post/
+│   └── draft.md           <- Blog post draft (primary deliverable)
+└── requirements.txt       <- Python dependencies
+```
 
-References
-==============================
+See [`.claude/CLAUDE.md`](.claude/CLAUDE.md) for full contribution rules.

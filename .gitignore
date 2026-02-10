@@ -1,5 +1,5 @@
 # Data
-king-county-housing-heatmap/data/raw/
+**/data/raw/
 __pycache__/
 *.pyc
 
@@ -7,6 +7,14 @@ __pycache__/
 node_modules/
 dist/
 
-# Environment
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Environment and secrets
 .env
 *.log
+
+# OS
+.DS_Store
