@@ -5,6 +5,8 @@ import json
 import os
 import random
 
+import h3
+
 random.seed(42)
 
 # King County bounds
@@ -33,6 +35,7 @@ for _ in range(400):
         "price": price,
         "date": f"2024-{month:02d}-{day:02d}",
         "county": "King",
+        "h3": h3.latlng_to_cell(lat, lng, 8),
     }
 
     if random.random() < 0.9:
@@ -64,6 +67,7 @@ for _ in range(100):
         "price": price,
         "date": f"2024-{month:02d}-{day:02d}",
         "county": "Snohomish",
+        "h3": h3.latlng_to_cell(lat, lng, 8),
     }
 
     if random.random() < 0.9:

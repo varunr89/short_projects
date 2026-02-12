@@ -8,6 +8,7 @@ import json
 import os
 import time
 
+import h3
 import numpy as np
 import pandas as pd
 import requests
@@ -45,11 +46,12 @@ DRIVE_BATCH_SIZE = 100
 DRIVE_RATE_DELAY = 0.3
 
 
-def compute_drive_times(merged):
+def compute_drive_times(merged, only_missing=False):
     """Compute driving times from each sale to nearest gym and MS Building 43.
 
     Uses OSRM table API with sales as sources and POIs as destinations.
     Adds 'driveGym' and 'driveOffice' columns (minutes, rounded).
+    If only_missing=True, only computes for rows where driveGym is NaN.
     """
     all_pois = CLIMBING_GYMS + [MICROSOFT_B43]
     gym_count = len(CLIMBING_GYMS)
@@ -63,26 +65,34 @@ def compute_drive_times(merged):
     lngs = merged["lng"].values
     n = len(merged)
 
-    drive_gym = np.full(n, np.nan)
-    drive_office = np.full(n, np.nan)
+    if only_missing:
+        # Only process rows where driveGym is missing
+        mask = merged["driveGym"].isna().values
+        indices_to_process = np.where(mask)[0]
+    else:
+        indices_to_process = np.arange(n)
 
-    total_batches = (n + DRIVE_BATCH_SIZE - 1) // DRIVE_BATCH_SIZE
-    print(f"\nComputing drive times ({total_batches} batches of {DRIVE_BATCH_SIZE})...")
+    drive_gym = merged["driveGym"].values.copy() if "driveGym" in merged.columns else np.full(n, np.nan)
+    drive_office = merged["driveOffice"].values.copy() if "driveOffice" in merged.columns else np.full(n, np.nan)
 
-    for batch_start in range(0, n, DRIVE_BATCH_SIZE):
-        batch_end = min(batch_start + DRIVE_BATCH_SIZE, n)
-        batch_num = batch_start // DRIVE_BATCH_SIZE + 1
+    n_process = len(indices_to_process)
+    total_batches = (n_process + DRIVE_BATCH_SIZE - 1) // DRIVE_BATCH_SIZE
+    print(f"\nComputing OSRM drive times ({n_process} sales, {total_batches} batches)...")
+
+    for b in range(0, n_process, DRIVE_BATCH_SIZE):
+        batch_indices = indices_to_process[b : b + DRIVE_BATCH_SIZE]
+        batch_num = b // DRIVE_BATCH_SIZE + 1
 
         # Source coords for this batch
-        src_coords = [f"{lngs[i]},{lats[i]}" for i in range(batch_start, batch_end)]
+        src_coords = [f"{lngs[i]},{lats[i]}" for i in batch_indices]
         src_count = len(src_coords)
 
         # Build coordinate string: sources first, then destinations
         all_coords = ";".join(src_coords + dest_coords)
-        src_indices = ";".join(str(i) for i in range(src_count))
-        dst_indices = ";".join(str(i) for i in range(src_count, src_count + len(all_pois)))
+        src_idx_str = ";".join(str(i) for i in range(src_count))
+        dst_idx_str = ";".join(str(i) for i in range(src_count, src_count + len(all_pois)))
 
-        url = f"{OSRM_TABLE_URL}/{all_coords}?sources={src_indices}&destinations={dst_indices}&annotations=duration"
+        url = f"{OSRM_TABLE_URL}/{all_coords}?sources={src_idx_str}&destinations={dst_idx_str}&annotations=duration"
 
         for attempt in range(3):
             try:
@@ -95,15 +105,15 @@ def compute_drive_times(merged):
                     break
 
                 durations = data["durations"]  # shape: [src_count x poi_count]
-                for j, row in enumerate(durations):
-                    idx = batch_start + j
+                for j, row_dur in enumerate(durations):
+                    idx = batch_indices[j]
                     # Nearest gym: min of first gym_count destinations
-                    gym_times = [row[k] for k in range(gym_count) if row[k] is not None]
+                    gym_times = [row_dur[k] for k in range(gym_count) if row_dur[k] is not None]
                     if gym_times:
                         drive_gym[idx] = round(min(gym_times) / 60)
                     # Office: last destination
-                    if row[-1] is not None:
-                        drive_office[idx] = round(row[-1] / 60)
+                    if row_dur[-1] is not None:
+                        drive_office[idx] = round(row_dur[-1] / 60)
                 break
 
             except (requests.RequestException, json.JSONDecodeError) as e:
@@ -264,8 +274,65 @@ def main():
     ]
     print(f"After geo bounds filter: {len(merged)}")
 
-    # Compute driving times to POIs
-    merged = compute_drive_times(merged)
+    # Assign H3 hex IDs
+    print("\nAssigning H3 hex IDs...")
+    merged["h3"] = merged.apply(
+        lambda r: h3.latlng_to_cell(r["lat"], r["lng"], 8), axis=1
+    )
+    merged["h3_r7"] = merged["h3"].apply(lambda c: h3.cell_to_parent(c, 7))
+    n_hex8 = merged["h3"].nunique()
+    n_hex7 = merged["h3_r7"].nunique()
+    print(f"  Res-8 hexes: {n_hex8}")
+    print(f"  Res-7 hexes (routing): {n_hex7}")
+
+    # Write routing centroids for Google Maps API script
+    routing_centroids = {}
+    for hex7 in merged["h3_r7"].unique():
+        lat, lng = h3.cell_to_latlng(hex7)
+        routing_centroids[hex7] = {"lat": round(lat, 6), "lng": round(lng, 6)}
+    centroids_path = os.path.join(RAW_DIR, "routing_centroids.json")
+    with open(centroids_path, "w") as f:
+        json.dump(routing_centroids, f)
+    print(f"  Routing centroids written to {centroids_path}")
+
+    # Load Google Maps drive times if available, otherwise fall back to OSRM
+    google_cache_path = os.path.join(RAW_DIR, "google_routes_cache.json")
+    if os.path.exists(google_cache_path):
+        print("\nLoading Google Maps drive times from cache...")
+        with open(google_cache_path) as f:
+            google_cache = json.load(f)
+        print(f"  Cache entries: {len(google_cache)}")
+
+        drive_gym = []
+        drive_office = []
+        nearest_gym_name = []
+        cache_hits = 0
+        for _, row in merged.iterrows():
+            hex7 = row["h3_r7"]
+            if hex7 in google_cache:
+                cache_hits += 1
+                entry = google_cache[hex7]
+                drive_office.append(entry.get("officeMinutes"))
+                drive_gym.append(entry.get("nearestGymMinutes"))
+                nearest_gym_name.append(entry.get("nearestGymName"))
+            else:
+                drive_office.append(None)
+                drive_gym.append(None)
+                nearest_gym_name.append(None)
+
+        merged["driveGym"] = drive_gym
+        merged["driveOffice"] = drive_office
+        merged["nearestGymName"] = nearest_gym_name
+        print(f"  Cache hits: {cache_hits}/{len(merged)} sales")
+
+        # Fall back to OSRM for any missing
+        missing = merged["driveGym"].isna().sum()
+        if missing > 0:
+            print(f"  {missing} sales missing Google Maps data, computing OSRM fallback...")
+            merged = compute_drive_times(merged, only_missing=True)
+    else:
+        print("\nNo Google Maps cache found, computing OSRM drive times...")
+        merged = compute_drive_times(merged)
 
     percentiles = [0, 20, 40, 60, 80, 100]
     breakpoints = np.percentile(merged["price"], percentiles).tolist()
@@ -305,6 +372,7 @@ def main():
             "price": int(row["price"]),
             "date": row["date"],
             "county": row["county"],
+            "h3": row["h3"],
         }
         # Add building fields if available
         for field in ["beds", "baths", "sqft", "yrBuilt"]:
@@ -316,6 +384,8 @@ def main():
             sale["driveGym"] = int(row["driveGym"])
         if pd.notna(row.get("driveOffice")):
             sale["driveOffice"] = int(row["driveOffice"])
+        if pd.notna(row.get("nearestGymName")):
+            sale["nearestGymName"] = row["nearestGymName"]
         sales_list.append(sale)
 
     output = {

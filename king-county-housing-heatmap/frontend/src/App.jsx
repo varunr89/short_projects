@@ -64,6 +64,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState(null);
+  const [viewMode, setViewMode] = useState("hex");
 
   useEffect(() => {
     fetch("/sales_data.json")
@@ -139,6 +140,33 @@ export default function App() {
           {" | Generated "}
           {data.generated}
         </span>
+        <span
+          style={{
+            marginLeft: 12,
+            display: "inline-flex",
+            borderRadius: 4,
+            overflow: "hidden",
+            border: "1px solid #ccc",
+            fontSize: 12,
+          }}
+        >
+          {["hex", "points"].map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              style={{
+                padding: "3px 10px",
+                border: "none",
+                background: viewMode === mode ? "#2563eb" : "white",
+                color: viewMode === mode ? "white" : "#333",
+                cursor: "pointer",
+                fontWeight: viewMode === mode ? 600 : 400,
+              }}
+            >
+              {mode === "hex" ? "Hex" : "Points"}
+            </button>
+          ))}
+        </span>
         {ranges && (
           <FilterPanel
             filters={filters}
@@ -147,7 +175,7 @@ export default function App() {
           />
         )}
       </div>
-      <Map sales={filteredSales} getColor={getColor} />
+      <Map sales={filteredSales} getColor={getColor} viewMode={viewMode} />
       <Legend median={median} />
     </div>
   );
