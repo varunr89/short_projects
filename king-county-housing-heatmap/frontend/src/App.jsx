@@ -67,7 +67,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState("hex");
 
   useEffect(() => {
-    fetch("/sales_data.json")
+    fetch("./sales_data.json")
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
