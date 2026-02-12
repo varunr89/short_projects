@@ -1,12 +1,69 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Map from "./components/Map";
 import Legend from "./components/Legend";
+import FilterPanel from "./components/FilterPanel";
 import { createColorScale } from "./utils/colorScale";
+
+function getDefaultFilters(ranges) {
+  if (!ranges) return null;
+  return {
+    beds: [],
+    price: [ranges.price.min, ranges.price.max],
+    sqft: [ranges.sqft.min, ranges.sqft.max],
+    yrBuilt: [ranges.yrBuilt.min, ranges.yrBuilt.max],
+    maxDriveGym: ranges.driveGym ? ranges.driveGym.max : null,
+    maxDriveOffice: ranges.driveOffice ? ranges.driveOffice.max : null,
+  };
+}
+
+function applyFilters(sales, filters) {
+  if (!filters) return sales;
+
+  const buildingFilterActive =
+    filters.beds.length > 0 ||
+    filters.sqft[0] !== filters._ranges.sqft.min ||
+    filters.sqft[1] !== filters._ranges.sqft.max ||
+    filters.yrBuilt[0] !== filters._ranges.yrBuilt.min ||
+    filters.yrBuilt[1] !== filters._ranges.yrBuilt.max;
+
+  const driveGymActive = filters.maxDriveGym != null &&
+    filters._ranges.driveGym &&
+    filters.maxDriveGym < filters._ranges.driveGym.max;
+  const driveOfficeActive = filters.maxDriveOffice != null &&
+    filters._ranges.driveOffice &&
+    filters.maxDriveOffice < filters._ranges.driveOffice.max;
+
+  return sales.filter((s) => {
+    if (s.price < filters.price[0] || s.price > filters.price[1]) return false;
+
+    if (buildingFilterActive) {
+      if (s.beds == null || s.sqft == null) return false;
+
+      if (filters.beds.length > 0) {
+        const match = filters.beds.includes(5) ? s.beds >= 5 || filters.beds.includes(s.beds) : filters.beds.includes(s.beds);
+        if (!match) return false;
+      }
+
+      if (s.sqft < filters.sqft[0] || s.sqft > filters.sqft[1]) return false;
+      if (s.yrBuilt != null && (s.yrBuilt < filters.yrBuilt[0] || s.yrBuilt > filters.yrBuilt[1])) return false;
+    }
+
+    if (driveGymActive) {
+      if (s.driveGym == null || s.driveGym > filters.maxDriveGym) return false;
+    }
+    if (driveOfficeActive) {
+      if (s.driveOffice == null || s.driveOffice > filters.maxDriveOffice) return false;
+    }
+
+    return true;
+  });
+}
 
 export default function App() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filters, setFilters] = useState(null);
 
   useEffect(() => {
     fetch("/sales_data.json")
@@ -16,6 +73,10 @@ export default function App() {
       })
       .then((json) => {
         setData(json);
+        const ranges = json.stats.filterRanges;
+        if (ranges) {
+          setFilters({ ...getDefaultFilters(ranges), _ranges: ranges });
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -23,6 +84,17 @@ export default function App() {
         setLoading(false);
       });
   }, []);
+
+  const filteredSales = useMemo(() => {
+    if (!data) return [];
+    return applyFilters(data.sales, filters);
+  }, [data, filters]);
+
+  const median = useMemo(() => {
+    if (filteredSales.length === 0) return 0;
+    const prices = filteredSales.map((s) => s.price).sort((a, b) => a - b);
+    return prices[Math.floor(prices.length / 2)];
+  }, [filteredSales]);
 
   if (loading) {
     return (
@@ -40,7 +112,9 @@ export default function App() {
     );
   }
 
-  const getColor = createColorScale(data.stats.percentiles);
+  const getColor = createColorScale(median);
+  const ranges = data.stats.filterRanges;
+  const isFiltered = filteredSales.length !== data.sales.length;
 
   return (
     <div style={{ position: "relative" }}>
@@ -57,13 +131,24 @@ export default function App() {
           fontSize: 14,
         }}
       >
-        <strong>King County Housing Sales</strong>
+        <strong>King &amp; Snohomish County Housing Sales</strong>
         <span style={{ marginLeft: 12, color: "#666" }}>
-          {data.stats.count.toLocaleString()} sales | Generated {data.generated}
+          {isFiltered
+            ? `${filteredSales.length.toLocaleString()} of ${data.stats.count.toLocaleString()} sales (filtered)`
+            : `${data.stats.count.toLocaleString()} sales`}
+          {" | Generated "}
+          {data.generated}
         </span>
+        {ranges && (
+          <FilterPanel
+            filters={filters}
+            onChange={(f) => setFilters({ ...f, _ranges: ranges })}
+            ranges={ranges}
+          />
+        )}
       </div>
-      <Map sales={data.sales} getColor={getColor} />
-      <Legend percentiles={data.stats.percentiles} />
+      <Map sales={filteredSales} getColor={getColor} />
+      <Legend median={median} />
     </div>
   );
 }

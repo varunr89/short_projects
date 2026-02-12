@@ -19,7 +19,7 @@ from shapely.geometry import shape
 
 PARCEL_API = (
     "https://gisdata.kingcounty.gov/arcgis/rest/services/"
-    "OpenDataPortal/property__parcel_area/FeatureServer/0/query"
+    "OpenDataPortal/property__parcel_area/FeatureServer/439/query"
 )
 RAW_DIR = os.path.join(os.path.dirname(__file__), "raw")
 SALES_CSV = os.path.join(RAW_DIR, "filtered_sales.csv")

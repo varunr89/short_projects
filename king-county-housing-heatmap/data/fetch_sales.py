@@ -39,7 +39,7 @@ def download_sales_zip():
         )
         print(f"Extracting: {sale_csv}")
         with zf.open(sale_csv) as f:
-            df = pd.read_csv(f, dtype={"Major": str, "Minor": str})
+            df = pd.read_csv(f, dtype={"Major": str, "Minor": str}, encoding="latin-1")
     return df
 
 

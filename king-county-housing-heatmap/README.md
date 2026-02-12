@@ -16,13 +16,21 @@ Interactive React web app visualizing residential housing sale prices across Kin
 
 ## Key Findings
 
-_To be written._
+- 22,603 geocoded home sales in the last 12 months, with a median price of $950,000
+- The Lake Washington waterfront corridor (Medina, Mercer Island, Bellevue) forms a visible band of $2M+ sales
+- South King County (Federal Way, Auburn, Kent) is where sub-$600K sales concentrate
+- The 20th-to-80th percentile spread is over $1M ($634K to $1.675M)
 
 ## Running
 
 ```bash
 # Data pipeline
-cd data && pip install -r ../requirements.txt && python fetch_sales.py && python fetch_parcels.py && python process_data.py
+cd king-county-housing-heatmap
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python data/fetch_sales.py
+python data/fetch_parcels.py   # ~5 min (API rate limited)
+python data/process_data.py
 
 # Frontend
 cd frontend && npm install && npm run dev

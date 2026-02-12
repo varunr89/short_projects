@@ -1,17 +1,13 @@
-import { formatPrice } from "../utils/colorScale";
+import { formatPrice, getGradientCSS, LOG_MIN, LOG_RANGE } from "../utils/colorScale";
 
-const COLORS = [
-  "rgb(27, 120, 55)",
-  "rgb(102, 189, 99)",
-  "rgb(254, 224, 76)",
-  "rgb(253, 141, 60)",
-  "rgb(215, 48, 39)",
+const TICKS = [
+  { ratio: 0.5, label: "0.5x" },
+  { ratio: 1, label: "1x" },
+  { ratio: 2, label: "2x" },
 ];
 
-export default function Legend({ percentiles }) {
-  if (!percentiles) return null;
-
-  const breaks = ["0", "20", "40", "60", "80", "100"];
+export default function Legend({ median }) {
+  if (!median) return null;
 
   return (
     <div
@@ -25,25 +21,44 @@ export default function Legend({ percentiles }) {
         boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
         zIndex: 1000,
         fontSize: 13,
+        width: 220,
       }}
     >
-      <div style={{ fontWeight: "bold", marginBottom: 8 }}>Sale Price</div>
-      {COLORS.map((color, i) => (
-        <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 4 }}>
-          <div
-            style={{
-              width: 20,
-              height: 14,
-              backgroundColor: color,
-              marginRight: 8,
-              borderRadius: 2,
-            }}
-          />
-          <span>
-            {formatPrice(percentiles[breaks[i]])} - {formatPrice(percentiles[breaks[i + 1]])}
-          </span>
-        </div>
-      ))}
+      <div style={{ fontWeight: "bold", marginBottom: 8 }}>
+        Price vs Median ({formatPrice(median)})
+      </div>
+      <div
+        style={{
+          height: 14,
+          borderRadius: 2,
+          background: getGradientCSS(),
+        }}
+      />
+      <div style={{ position: "relative", height: 32, marginTop: 4 }}>
+        {TICKS.map(({ ratio, label }) => {
+          const pct = ((Math.log2(ratio) - LOG_MIN) / LOG_RANGE) * 100;
+          return (
+            <div
+              key={ratio}
+              style={{
+                position: "absolute",
+                left: `${pct}%`,
+                transform: "translateX(-50%)",
+                textAlign: "center",
+                lineHeight: 1.2,
+              }}
+            >
+              <div style={{ fontSize: 11, color: "#333" }}>{label}</div>
+              <div style={{ fontSize: 10, color: "#888" }}>
+                {formatPrice(Math.round(median * ratio))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ fontSize: 10, color: "#999", marginTop: 2 }}>
+        Below median &larr; &rarr; Above median
+      </div>
     </div>
   );
 }
