@@ -50,6 +50,12 @@ short_projects/
 - The draft should be written in Markdown and be suitable for publishing.
 - Reference charts using relative paths: `![description](../charts/01_timeseries.png)`.
 
+### Blog Preview
+- Every project should have a `post/preview.html` that renders the blog draft as a publishable preview with full styling, embedded charts, dark mode support, and a "DRAFT PREVIEW" banner.
+- **Whenever you read or review a blog draft (`post/draft.md`), automatically regenerate `post/preview.html` from it and open it in the browser** so the author can see exactly how it will look to readers.
+- The preview uses relative image paths (`../charts/filename.png`) so it works locally without a server.
+- Match the styling of the bhavanaai Astro blog: system-ui font, 42rem max-width, 1.125rem base font size, 1.7 line-height, dark mode via `prefers-color-scheme`.
+
 ### Python Environment
 - Always use a virtual environment. Never install packages globally.
 - Each project has its own `requirements.txt`.
