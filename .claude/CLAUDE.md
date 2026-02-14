@@ -50,11 +50,25 @@ short_projects/
 - The draft should be written in Markdown and be suitable for publishing.
 - Reference charts using relative paths: `![description](../charts/01_timeseries.png)`.
 
-### Blog Preview
-- Every project should have a `post/preview.html` that renders the blog draft as a publishable preview with full styling, embedded charts, dark mode support, and a "DRAFT PREVIEW" banner.
+### Blog Preview and Feedback Loop
+- Every project should have a `post/preview.html` that renders the blog draft as a publishable preview with full styling, embedded charts, dark mode support, a "DRAFT PREVIEW" banner, and an **inline commenting system**.
 - **Whenever you read or review a blog draft (`post/draft.md`), automatically regenerate `post/preview.html` from it and open it in the browser** so the author can see exactly how it will look to readers.
 - The preview uses relative image paths (`../charts/filename.png`) so it works locally without a server.
 - Match the styling of the bhavanaai Astro blog: system-ui font, 42rem max-width, 1.125rem base font size, 1.7 line-height, dark mode via `prefers-color-scheme`.
+
+#### Inline Commenting System
+- The preview includes a Google Docs-style commenting UI: select text, click "Comment," type feedback, and the comment appears as a right-margin annotation.
+- Comments persist in `localStorage` across page refreshes.
+- "Save Feedback" button in the banner exports comments to `post/feedback.json` via the File System Access API.
+
+#### Feedback Workflow
+1. Author opens `post/preview.html` in Chrome and reads the draft.
+2. Author selects text and adds inline comments on anything that needs changes.
+3. Author clicks "Save Feedback" and saves to `post/feedback.json`.
+4. Author tells Claude to "read my feedback" or "apply feedback."
+5. Claude reads `post/feedback.json`, applies each comment's requested changes to `post/draft.md`, regenerates `post/preview.html` (preserving the commenting system), and opens it in the browser.
+6. Claude summarizes what was changed for each comment.
+7. Repeat until the draft is finalized.
 
 ### Python Environment
 - Always use a virtual environment. Never install packages globally.
