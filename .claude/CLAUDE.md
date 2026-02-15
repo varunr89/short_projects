@@ -50,6 +50,12 @@ short_projects/
 - The draft should be written in Markdown and be suitable for publishing.
 - Reference charts using relative paths: `![description](../charts/01_timeseries.png)`.
 
+### Publishing Drafts to bhavanaai
+- When a blog draft is ready for review, always create it as a **draft** in the bhavanaai repo at `/Users/varunr/projects/bhavanaai/` so it's viewable on the web via the admin layer.
+- Create `src/content/blog/<project-name>.md` with frontmatter: `title`, `date`, `description`, and `draft: true`.
+- Copy chart images to `public/images/blog/<project-name>/` and use absolute paths in the markdown: `![alt](/images/blog/<project-name>/filename.png)`.
+- This makes the draft accessible at `me.bhavanaai.com/blog/<project-name>` for review and inline commenting from any device.
+
 ### Blog Preview and Feedback Loop
 - Every project should have a `post/preview.html` that renders the blog draft as a publishable preview with full styling, embedded charts, dark mode support, a "DRAFT PREVIEW" banner, and an **inline commenting system**.
 - **Whenever you read or review a blog draft (`post/draft.md`), automatically regenerate `post/preview.html` from it and open it in the browser** so the author can see exactly how it will look to readers.
