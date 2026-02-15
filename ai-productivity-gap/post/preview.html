@@ -252,6 +252,40 @@
     }
   }
 
+  /* Image comment highlights */
+  .prose img {
+    cursor: pointer;
+    transition: outline 0.15s;
+  }
+
+  .prose img:hover {
+    outline: 2px dashed rgba(245, 158, 11, 0.35);
+    outline-offset: 3px;
+  }
+
+  .prose img.comment-highlight-img {
+    outline: 3px solid #fde68a;
+    outline-offset: 3px;
+  }
+
+  .prose img.comment-highlight-img:hover,
+  .prose img.comment-highlight-img.active {
+    outline-color: #f59e0b;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .prose img:hover {
+      outline-color: rgba(245, 158, 11, 0.25);
+    }
+    .prose img.comment-highlight-img {
+      outline-color: rgba(253, 230, 138, 0.4);
+    }
+    .prose img.comment-highlight-img:hover,
+    .prose img.comment-highlight-img.active {
+      outline-color: #f59e0b;
+    }
+  }
+
   /* Margin comment cards */
   .comment-card {
     background: #fefce8;
@@ -750,7 +784,7 @@
   // Floating UI elements (created on demand)
   var addCommentBtn = null;
   var commentInputContainer = null;
-  var pendingSelection = null; // { text, range, rect, paragraph, charOffset, section }
+  var pendingSelection = null; // text: { type, text, range, rect, paragraph, charOffset, section } or image: { type, text, imgSrc, imgAlt, imgEl, rect, section }
 
   // ── Utility functions ──
 
@@ -893,6 +927,43 @@
     });
   }
 
+  // ── Image comment helpers ──
+
+  function getImageForComment(commentData) {
+    var imgs = prose.querySelectorAll('img');
+    for (var i = 0; i < imgs.length; i++) {
+      if (imgs[i].getAttribute('src') === commentData.imgSrc) return imgs[i];
+    }
+    return null;
+  }
+
+  function addImageHighlight(img, commentId) {
+    img.classList.add('comment-highlight-img');
+    var ids = (img.dataset.commentIds || '').split(' ').filter(Boolean);
+    if (ids.indexOf(commentId) === -1) ids.push(commentId);
+    img.dataset.commentIds = ids.join(' ');
+    img.addEventListener('click', onImageClick);
+  }
+
+  function removeImageHighlight(img, commentId) {
+    var ids = (img.dataset.commentIds || '').split(' ').filter(Boolean);
+    ids = ids.filter(function(id) { return id !== commentId; });
+    if (ids.length === 0) {
+      img.classList.remove('comment-highlight-img');
+      img.classList.remove('active');
+      delete img.dataset.commentIds;
+    } else {
+      img.dataset.commentIds = ids.join(' ');
+    }
+  }
+
+  function getAnchorForComment(commentData) {
+    if (commentData.type === 'image') {
+      return getImageForComment(commentData);
+    }
+    return prose.querySelector('mark[data-comment-id="' + commentData.id + '"]');
+  }
+
   // ── Comment cards ──
 
   function renderAllCards() {
@@ -919,7 +990,11 @@
 
     var quote = document.createElement('div');
     quote.className = 'comment-card-quote';
-    quote.textContent = '\u201c' + truncate(commentData.selectedText, 50) + '\u201d';
+    if (commentData.type === 'image') {
+      quote.textContent = 'Chart: ' + truncate(commentData.imgAlt || commentData.imgSrc, 50);
+    } else {
+      quote.textContent = '\u201c' + truncate(commentData.selectedText, 50) + '\u201d';
+    }
 
     var text = document.createElement('div');
     text.className = 'comment-card-text';
@@ -947,8 +1022,8 @@
   }
 
   function createInlineCard(commentData) {
-    var mark = prose.querySelector('mark[data-comment-id="' + commentData.id + '"]');
-    if (!mark) return;
+    var anchor = getAnchorForComment(commentData);
+    if (!anchor) return;
 
     var card = document.createElement('div');
     card.className = 'comment-card-inline';
@@ -957,7 +1032,11 @@
 
     var quote = document.createElement('div');
     quote.className = 'comment-card-quote';
-    quote.textContent = '\u201c' + truncate(commentData.selectedText, 50) + '\u201d';
+    if (commentData.type === 'image') {
+      quote.textContent = 'Chart: ' + truncate(commentData.imgAlt || commentData.imgSrc, 50);
+    } else {
+      quote.textContent = '\u201c' + truncate(commentData.selectedText, 50) + '\u201d';
+    }
 
     var text = document.createElement('div');
     text.className = 'comment-card-text';
@@ -981,7 +1060,7 @@
       scrollToHighlight(commentData.id);
     });
 
-    var parent = mark.closest('p, li, h2, h3, img');
+    var parent = commentData.type === 'image' ? anchor : anchor.closest('p, li, h2, h3, img');
     if (parent && parent.parentNode) {
       parent.parentNode.insertBefore(card, parent.nextSibling);
     }
@@ -996,11 +1075,16 @@
     for (var i = 0; i < cards.length; i++) {
       var card = cards[i];
       var commentId = card.dataset.commentId;
-      var mark = prose.querySelector('mark[data-comment-id="' + commentId + '"]');
-      if (!mark) continue;
+      var commentData = comments.find(function(c) { return c.id === commentId; });
+      var anchor = commentData ? getAnchorForComment(commentData) : null;
+      if (!anchor) {
+        // Fallback: try mark element directly
+        anchor = prose.querySelector('mark[data-comment-id="' + commentId + '"]');
+      }
+      if (!anchor) continue;
 
-      var markRect = mark.getBoundingClientRect();
-      var desiredTop = markRect.top + scrollY - columnTop;
+      var anchorRect = anchor.getBoundingClientRect();
+      var desiredTop = anchorRect.top + scrollY - columnTop;
 
       if (desiredTop < lastBottom + 8) {
         desiredTop = lastBottom + 8;
@@ -1019,6 +1103,13 @@
     var highlights = prose.querySelectorAll('mark.comment-highlight');
     for (var i = 0; i < highlights.length; i++) {
       highlights[i].classList.toggle('active', highlights[i].dataset.commentId === commentId);
+    }
+
+    // Toggle active state on commented images
+    var commentedImgs = prose.querySelectorAll('img.comment-highlight-img');
+    for (var m = 0; m < commentedImgs.length; m++) {
+      var imgIds = (commentedImgs[m].dataset.commentIds || '').split(' ');
+      commentedImgs[m].classList.toggle('active', imgIds.indexOf(commentId) !== -1);
     }
 
     var marginCards = commentsColumn.querySelectorAll('.comment-card');
@@ -1046,9 +1137,13 @@
   }
 
   function scrollToHighlight(commentId) {
-    var mark = prose.querySelector('mark[data-comment-id="' + commentId + '"]');
-    if (mark) {
-      mark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    var commentData = comments.find(function(c) { return c.id === commentId; });
+    var anchor = commentData ? getAnchorForComment(commentData) : null;
+    if (!anchor) {
+      anchor = prose.querySelector('mark[data-comment-id="' + commentId + '"]');
+    }
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
 
@@ -1166,22 +1261,37 @@
     }
 
     var id = generateId();
-    var commentData = {
-      id: id,
-      selectedText: pendingSelection.text,
-      comment: text,
-      section: pendingSelection.section,
-      paragraphContext: pendingSelection.paragraphContext,
-      charOffset: pendingSelection.charOffset
-    };
+    var commentData;
 
-    try {
-      var sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(pendingSelection.range);
-      wrapRangeWithMark(pendingSelection.range, id);
-    } catch(e) {
-      findAndHighlightText(commentData);
+    if (pendingSelection.type === 'image') {
+      commentData = {
+        id: id,
+        type: 'image',
+        selectedText: pendingSelection.imgAlt || pendingSelection.imgSrc,
+        comment: text,
+        section: pendingSelection.section,
+        imgSrc: pendingSelection.imgSrc,
+        imgAlt: pendingSelection.imgAlt
+      };
+      addImageHighlight(pendingSelection.imgEl, id);
+    } else {
+      commentData = {
+        id: id,
+        type: 'text',
+        selectedText: pendingSelection.text,
+        comment: text,
+        section: pendingSelection.section,
+        paragraphContext: pendingSelection.paragraphContext,
+        charOffset: pendingSelection.charOffset
+      };
+      try {
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(pendingSelection.range);
+        wrapRangeWithMark(pendingSelection.range, id);
+      } catch(e) {
+        findAndHighlightText(commentData);
+      }
     }
 
     comments.push(commentData);
@@ -1198,7 +1308,13 @@
   // ── Delete comment ──
 
   function deleteComment(commentId) {
-    removeHighlight(commentId);
+    var commentData = comments.find(function(c) { return c.id === commentId; });
+    if (commentData && commentData.type === 'image') {
+      var img = getImageForComment(commentData);
+      if (img) removeImageHighlight(img, commentId);
+    } else {
+      removeHighlight(commentId);
+    }
     comments = comments.filter(function(c) { return c.id !== commentId; });
     if (activeCommentId === commentId) activeCommentId = null;
     saveToLocalStorage();
@@ -1232,7 +1348,12 @@
   function restoreComments() {
     loadFromLocalStorage();
     for (var i = 0; i < comments.length; i++) {
-      findAndHighlightText(comments[i]);
+      if (comments[i].type === 'image') {
+        var img = getImageForComment(comments[i]);
+        if (img) addImageHighlight(img, comments[i].id);
+      } else {
+        findAndHighlightText(comments[i]);
+      }
     }
     renderAllCards();
   }
@@ -1244,13 +1365,20 @@
       draft: document.title,
       timestamp: new Date().toISOString(),
       comments: comments.map(function(c) {
-        return {
+        var out = {
           id: c.id,
+          type: c.type || 'text',
           selectedText: c.selectedText,
           comment: c.comment,
-          section: c.section,
-          paragraphContext: c.paragraphContext
+          section: c.section
         };
+        if (c.type === 'image') {
+          out.imgSrc = c.imgSrc;
+          out.imgAlt = c.imgAlt;
+        } else {
+          out.paragraphContext = c.paragraphContext;
+        }
+        return out;
       })
     };
 
@@ -1297,7 +1425,12 @@
     if (!confirm('Remove all comments? This cannot be undone.')) return;
 
     for (var i = 0; i < comments.length; i++) {
-      removeHighlight(comments[i].id);
+      if (comments[i].type === 'image') {
+        var img = getImageForComment(comments[i]);
+        if (img) removeImageHighlight(img, comments[i].id);
+      } else {
+        removeHighlight(comments[i].id);
+      }
     }
     comments = [];
     activeCommentId = null;
@@ -1309,6 +1442,11 @@
 
   function handleMouseUp(e) {
     if (e.target.closest('.add-comment-btn, .comment-input-container, .comment-card, .comment-card-inline, .draft-banner')) {
+      return;
+    }
+
+    // Skip text selection handling when clicking on images (handled by onImageClick)
+    if (e.target.tagName === 'IMG' && e.target.closest('.prose')) {
       return;
     }
 
@@ -1376,8 +1514,38 @@
     showAddCommentButton(btnX, btnY);
   }
 
+  function onImageClick(e) {
+    var img = e.target;
+    if (!img || img.tagName !== 'IMG' || !img.closest('.prose')) return;
+
+    // If there's an open comment input, close it
+    removeAddCommentButton();
+    removeCommentInput();
+
+    var section = getNearestHeading(img);
+    var rect = img.getBoundingClientRect();
+
+    pendingSelection = {
+      type: 'image',
+      text: img.alt || img.src,
+      imgSrc: img.getAttribute('src'),
+      imgAlt: img.getAttribute('alt') || '',
+      imgEl: img,
+      rect: rect,
+      section: section
+    };
+
+    var scrollY = window.scrollY || document.documentElement.scrollTop;
+    var scrollX = window.scrollX || document.documentElement.scrollLeft;
+    var btnX = rect.right + scrollX - 80;
+    var btnY = rect.top + scrollY + 8;
+
+    showAddCommentButton(btnX, btnY);
+    e.stopPropagation();
+  }
+
   function handleClick(e) {
-    if (e.target.closest('.comment-card, .comment-card-inline, mark.comment-highlight, .add-comment-btn, .comment-input-container')) {
+    if (e.target.closest('.comment-card, .comment-card-inline, mark.comment-highlight, .add-comment-btn, .comment-input-container') || (e.target.tagName === 'IMG' && e.target.closest('.prose'))) {
       return;
     }
     if (activeCommentId) {
@@ -1400,6 +1568,12 @@
   clearCommentsBtn.addEventListener('click', clearAllComments);
 
   // ── Initialize ──
+
+  // Attach click handlers to all images in prose
+  var proseImages = prose.querySelectorAll('img');
+  for (var ii = 0; ii < proseImages.length; ii++) {
+    proseImages[ii].addEventListener('click', onImageClick);
+  }
 
   restoreComments();
 

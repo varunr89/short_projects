@@ -1,0 +1,72 @@
+{
+  "draft": "The Integral Problem: Why AI Isn't Moving the Productivity Needle",
+  "timestamp": "2026-02-15T15:52:29.277Z",
+  "comments": [
+    {
+      "id": "comment-1771104892504-1",
+      "type": "text",
+      "selectedText": "'ve spent the last year working across multiple engineering and product teams at a large tech company.",
+      "comment": "I've worked across multiple engineering and product teams for multiple years since the dawn of GPT 2 - I've personally used every model and subscribe to all AI subscriptions and evaluate them E2E.",
+      "section": "",
+      "paragraphContext": "I've spent the last year working across multiple engineering and product teams at a large tech compa"
+    },
+    {
+      "id": "comment-1771122785796-2",
+      "type": "text",
+      "selectedText": "That ratio haunts me. Because the tools work. I know they work. I use them every day. But almost nobody around me does. And that means, at the organizational level, AI is barely moving the needle.",
+      "comment": "what is the value of the paragraph.. what gives me the authority to say this. this is maybe better said by citing a research study and my observation is an empirical evidence that even in a large tech company within core engineering with relatively young tech savvy population (<40 years old) AI adoption beyond just asking copilot is 1 in 20.",
+      "section": "",
+      "paragraphContext": "That ratio haunts me. Because the tools work. I know they work. I use them every day. But almost nob"
+    },
+    {
+      "id": "comment-1771123415019-3",
+      "type": "image",
+      "selectedText": "The Integral Problem: before and after AI productivity curves showing minimal area gain",
+      "comment": "check our research notes, the shape of this graph is no accurate. the top 5% account for 26% of the productivity. and here the gains are only 7-17%. we should combine 2 graphs Ai adoption rate and impact of AI on productivity. the end result it shows is that AI adoption is focused in the part of the curve there the effect is less. so the overall integral is lower.",
+      "section": "The integral problem",
+      "imgSrc": "../charts/01_productivity_curve.png",
+      "imgAlt": "The Integral Problem: before and after AI productivity curves showing minimal area gain"
+    },
+    {
+      "id": "comment-1771123951361-5",
+      "type": "image",
+      "selectedText": "AI capability vs enterprise adoption timeline showing widening gap",
+      "comment": "for AI capability we should ground it in capabilities and skills on what the model can achieve vs model #. maybe we can add notes on what big breakthrough each model achieved kind of wow factor like PhD level intelligence (Gemini 3pro), autonomous coding agent (Claude Code), and so on.",
+      "section": "The capability-adoption gap",
+      "imgSrc": "../charts/02_capability_adoption_gap.png",
+      "imgAlt": "AI capability vs enterprise adoption timeline showing widening gap"
+    },
+    {
+      "id": "comment-1771124033050-6",
+      "type": "text",
+      "selectedText": "And still, at most 1 in 20 engineers I worked with truly adopted AI into their workflows.\n\nNot 1 in 20 across the whole company. 1 in 20 among core engineering and product teams. The people who should be first. The people who build software for a living.",
+      "comment": "this is powerful, maybe we should emphasize this with italics/make it stand out similar to how New York Times does it. we don't want to bold it because it looks ugly we need to find a more elegant way to emphasize.",
+      "section": "",
+      "paragraphContext": "And still, at most 1 in 20 engineers I worked with truly adopted AI into their workflows."
+    },
+    {
+      "id": "comment-1771124162998-7",
+      "type": "text",
+      "selectedText": "GPT-4o shipped. Claude Opus 4 shipped. Claude Code, Gemini 2.5 Pro, GitHub Copilot CLI, OpenAI's Codex CLI.",
+      "comment": "we can say something like we went from GPT 4o that could write perfect haikus to fully autonomous agents that can be my personal assistant (clawdbot) and solve quantum problems (cite: recent open AI announcement)",
+      "section": "",
+      "paragraphContext": "I've spent the last year working across multiple engineering and product teams at a large tech compa"
+    },
+    {
+      "id": "comment-1771130133323-8",
+      "type": "text",
+      "selectedText": "Organizational output is not determined by its best performers.",
+      "comment": "emphasize this support with evidence from research",
+      "section": "The integral problem",
+      "paragraphContext": "This is the core problem. Organizational output is not determined by its best performers. It's deter"
+    },
+    {
+      "id": "comment-1771130197158-9",
+      "type": "text",
+      "selectedText": "Now imagine AI shifts the top 5% of that curve dramatically upward.",
+      "comment": "we should add from research that the increase in productivity of these top performers from AI is less than that of average performers.",
+      "section": "The integral problem",
+      "paragraphContext": "Now imagine AI shifts the top 5% of that curve dramatically upward. Those 1-in-20 power users become"
+    }
+  ]
+}
