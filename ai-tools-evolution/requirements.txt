@@ -1,0 +1,2 @@
+# No Python dependencies needed -- this is a research/writing project
+# Data comes from git histories and conversation archives
