@@ -86,12 +86,7 @@ ax.annotate('High adoption\nLow gain',
             xy=(78, 57), fontsize=10, color='#2563eb', fontstyle='italic',
             fontweight='medium', ha='center', va='center')
 
-# Research citations in small gray text, positioned to avoid overlaps
-ax.text(2, 2.5,
-        'Adoption: Bick et al. (2024), Dropbox (2024)  |  '
-        'Gain: Brynjolfsson et al. (2023), Dell\'Acqua et al. (2023)',
-        fontsize=7, color='#aaaaaa', ha='left', va='bottom',
-        transform=ax.transData)
+# (Source citation moved to figure caption below the plot)
 
 # Labels
 ax.set_xlabel('Employee Percentile (by baseline performance)', fontsize=11, labelpad=10)
@@ -109,7 +104,13 @@ fig.suptitle('The Mismatch', fontsize=16, fontweight='bold', x=0.12, ha='left', 
 ax.set_title('AI adoption is highest where productivity gains are smallest',
              fontsize=10.5, color='#666666', loc='left', pad=12)
 
-plt.tight_layout(rect=[0, 0.02, 1, 0.93])
+plt.tight_layout(rect=[0, 0.05, 1, 0.93])
+
+# Source citations as figure caption below the chart
+fig.text(0.5, 0.01,
+         'Sources: Brynjolfsson et al. (2023), BCG/Harvard (Dell\'Acqua et al., 2023), Bick et al. (2024), Dropbox (2024)',
+         fontsize=7.5, color='#999999', ha='center', va='bottom')
+
 plt.savefig('/Users/varunr/projects/short_projects/ai-productivity-gap/charts/01_the_mismatch.png',
             dpi=200, bbox_inches='tight', facecolor='white')
 print('Saved charts/01_the_mismatch.png')
