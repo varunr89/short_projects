@@ -1,0 +1,1 @@
+# No external dependencies — scripts use only Python stdlib (json, collections, pathlib, re)
