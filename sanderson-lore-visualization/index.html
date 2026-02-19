@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cosmere Knowledge Graph — Words of Brandon</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #0a0e17;
+    color: #e0e0e0;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* ── Graph canvas ───────────────────────────────────────────── */
+  #graph-container {
+    position: absolute;
+    inset: 0;
+  }
+  svg { width: 100%; height: 100%; }
+
+  /* ── Search overlay ─────────────────────────────────────────── */
+  #search-box {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #search-input {
+    width: 280px;
+    padding: 10px 14px;
+    border: 1px solid #2a3040;
+    border-radius: 8px;
+    background: #12162090;
+    backdrop-filter: blur(12px);
+    color: #e0e0e0;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #search-input:focus { border-color: #5b8def; }
+  #search-input::placeholder { color: #556; }
+  #search-clear {
+    background: none; border: none; color: #667;
+    font-size: 18px; cursor: pointer; padding: 4px 8px;
+    display: none;
+  }
+  #search-clear:hover { color: #e0e0e0; }
+  #search-suggestions {
+    position: absolute;
+    top: 44px; left: 0;
+    width: 280px;
+    max-height: 320px;
+    overflow-y: auto;
+    background: #161b28ee;
+    backdrop-filter: blur(12px);
+    border: 1px solid #2a3040;
+    border-radius: 8px;
+    display: none;
+  }
+  .suggestion {
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .suggestion:hover, .suggestion.active { background: #1e2538; }
+  .suggestion .tag-type {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    opacity: 0.8;
+  }
+
+  /* ── Filter toggles ────────────────────────────────────────── */
+  #filters {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 10;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 500px;
+  }
+  .filter-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #2a3040;
+    background: #12162090;
+    backdrop-filter: blur(12px);
+    color: #e0e0e0;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .filter-btn.off {
+    opacity: 0.35;
+    text-decoration: line-through;
+  }
+  .filter-btn:hover { border-color: #5b8def; }
+
+  /* ── Side panel ─────────────────────────────────────────────── */
+  #panel {
+    position: absolute;
+    top: 0; right: 0;
+    width: 420px;
+    height: 100vh;
+    background: #111622ee;
+    backdrop-filter: blur(16px);
+    border-left: 1px solid #1e2538;
+    z-index: 20;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    padding: 24px;
+  }
+  #panel.open { transform: translateX(0); }
+  #panel-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; border: none; color: #667;
+    font-size: 22px; cursor: pointer;
+  }
+  #panel-close:hover { color: #e0e0e0; }
+
+  #panel h2 {
+    font-size: 22px;
+    margin-bottom: 4px;
+    color: #fff;
+  }
+  .panel-type-badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  .panel-entry-count {
+    font-size: 13px;
+    color: #889;
+    margin-bottom: 20px;
+  }
+
+  .connections-section h3 {
+    font-size: 14px;
+    color: #8899aa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 16px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #1e2538;
+  }
+  .connection-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .connection-item:hover { background: #1a2030; }
+  .connection-weight {
+    font-size: 12px;
+    color: #667;
+    background: #1a2030;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  /* ── WoB entries panel ──────────────────────────────────────── */
+  #entries-section {
+    margin-top: 20px;
+    display: none;
+  }
+  #entries-section h3 {
+    font-size: 14px;
+    color: #8899aa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #1e2538;
+  }
+  .entries-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .entries-back {
+    font-size: 12px;
+    color: #5b8def;
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
+  .entries-back:hover { text-decoration: underline; }
+
+  .wob-entry {
+    background: #0d111c;
+    border: 1px solid #1e2538;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .wob-event {
+    font-size: 11px;
+    color: #667;
+    margin-bottom: 8px;
+  }
+  .wob-line {
+    margin-bottom: 6px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .wob-speaker {
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .wob-speaker.brandon { color: #7cb3ff; }
+  .wob-speaker.questioner { color: #a0a8b8; }
+  .wob-expand {
+    font-size: 12px;
+    color: #5b8def;
+    cursor: pointer;
+    border: none;
+    background: none;
+    margin-top: 4px;
+  }
+  .wob-expand:hover { text-decoration: underline; }
+
+  .wob-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .wob-tag {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: #1a2030;
+    color: #889;
+  }
+
+  /* ── Color system ───────────────────────────────────────────── */
+  .type-character { color: #5b9bef; }
+  .type-world { color: #4eca8b; }
+  .type-magic { color: #b07ce8; }
+  .type-shard { color: #e8c44a; }
+  .type-concept { color: #e89040; }
+  .type-book { color: #8899aa; }
+
+  .bg-character { background: #1a2a45; }
+  .bg-world { background: #143028; }
+  .bg-magic { background: #2a1a3d; }
+  .bg-shard { background: #3a3018; }
+  .bg-concept { background: #3a2418; }
+  .bg-book { background: #1e2530; }
+
+  /* ── Info overlay ───────────────────────────────────────────── */
+  #info {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    z-index: 10;
+    font-size: 12px;
+    color: #445;
+    background: #12162090;
+    backdrop-filter: blur(12px);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #1e2538;
+  }
+  #info a { color: #5577aa; }
+
+  /* ── Tooltip ────────────────────────────────────────────────── */
+  #tooltip {
+    position: absolute;
+    z-index: 30;
+    background: #1a2030ee;
+    border: 1px solid #2a3545;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    pointer-events: none;
+    display: none;
+    max-width: 250px;
+  }
+  #tooltip .tt-name { font-weight: 600; }
+  #tooltip .tt-count { color: #889; font-size: 12px; }
+
+  /* ── Loading ────────────────────────────────────────────────── */
+  #loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0a0e17;
+    z-index: 100;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #loading .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid #1e2538;
+    border-top: 3px solid #5b8def;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div style="color: #667; font-size: 14px;">Loading Cosmere knowledge graph...</div>
+</div>
+
+<div id="graph-container">
+  <svg id="graph-svg"></svg>
+</div>
+
+<div id="search-box">
+  <input type="text" id="search-input" placeholder="Search characters, worlds, magic...">
+  <button id="search-clear">&times;</button>
+  <div id="search-suggestions"></div>
+</div>
+
+<div id="filters"></div>
+
+<div id="panel">
+  <button id="panel-close">&times;</button>
+  <div id="panel-content"></div>
+</div>
+
+<div id="tooltip"></div>
+
+<div id="info">
+  Cosmere Knowledge Graph &middot; <span id="node-count"></span> entities &middot; <span id="edge-count"></span> connections
+  &middot; Data from <a href="https://wob.coppermind.net/" target="_blank">Arcanum</a>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+// ── Constants ────────────────────────────────────────────────────────────────
+
+const TYPE_COLORS = {
+  character: '#5b9bef',
+  world:     '#4eca8b',
+  magic:     '#b07ce8',
+  shard:     '#e8c44a',
+  concept:   '#e89040',
+  book:      '#8899aa',
+};
+
+const TYPE_LABELS = {
+  character: 'Characters',
+  world:     'Worlds',
+  magic:     'Magic Systems',
+  shard:     'Shards',
+  concept:   'Concepts',
+  book:      'Books',
+};
+
+// ── State ────────────────────────────────────────────────────────────────────
+
+let graph, entries;
+let simulation;
+let focusedNode = null;
+let activeFilters = new Set(Object.keys(TYPE_COLORS));
+let selectedConnection = null;
+
+// ── Load data ────────────────────────────────────────────────────────────────
+
+async function init() {
+  const basePath = window.location.pathname.replace(/\/[^\/]*$/, '');
+  const [graphResp, entriesResp] = await Promise.all([
+    fetch(`${basePath}/data/graph.json`).then(r => r.json()),
+    fetch(`${basePath}/data/entries.json`).then(r => r.json()),
+  ]);
+  graph = graphResp;
+  entries = entriesResp;
+
+  // Filter out book nodes and their edges for cleaner graph
+  // (books create noisy connections — everything connects to "stormlight archive")
+  graph.nodes = graph.nodes.filter(n => n.type !== 'book');
+  const nodeIds = new Set(graph.nodes.map(n => n.id));
+  graph.edges = graph.edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
+  // Also remove "book" from filters since we filtered them
+  delete TYPE_COLORS.book;
+  delete TYPE_LABELS.book;
+  activeFilters.delete('book');
+
+  document.getElementById('node-count').textContent = graph.nodes.length;
+  document.getElementById('edge-count').textContent = graph.edges.length;
+  document.getElementById('loading').style.display = 'none';
+
+  buildGraph();
+  buildFilters();
+  setupSearch();
+  setupPanel();
+}
+
+// ── Graph ────────────────────────────────────────────────────────────────────
+
+function buildGraph() {
+  const svg = d3.select('#graph-svg');
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
+  // Size scale: sqrt of entry count, clamped
+  const sizeScale = d3.scaleSqrt()
+    .domain([1, d3.max(graph.nodes, d => d.entryCount)])
+    .range([3, 22]);
+
+  // Edge width scale
+  const edgeScale = d3.scaleLinear()
+    .domain([2, d3.max(graph.edges, d => d.weight)])
+    .range([0.3, 3]);
+
+  // Zoom behavior
+  const zoom = d3.zoom()
+    .scaleExtent([0.1, 8])
+    .on('zoom', (event) => {
+      container.attr('transform', event.transform);
+    });
+  svg.call(zoom);
+
+  // Click background to unfocus
+  svg.on('click', (event) => {
+    if (event.target === svg.node()) {
+      unfocus();
+    }
+  });
+
+  const container = svg.append('g');
+
+  // Edges
+  const linkGroup = container.append('g').attr('class', 'links');
+  const links = linkGroup.selectAll('line')
+    .data(graph.edges)
+    .join('line')
+    .attr('stroke', '#1e2538')
+    .attr('stroke-width', d => edgeScale(d.weight))
+    .attr('stroke-opacity', 0.4);
+
+  // Nodes
+  const nodeGroup = container.append('g').attr('class', 'nodes');
+  const nodes = nodeGroup.selectAll('g')
+    .data(graph.nodes)
+    .join('g')
+    .attr('cursor', 'pointer')
+    .call(d3.drag()
+      .on('start', dragStart)
+      .on('drag', dragging)
+      .on('end', dragEnd));
+
+  nodes.append('circle')
+    .attr('r', d => sizeScale(d.entryCount))
+    .attr('fill', d => TYPE_COLORS[d.type])
+    .attr('fill-opacity', 0.8)
+    .attr('stroke', d => TYPE_COLORS[d.type])
+    .attr('stroke-width', 1)
+    .attr('stroke-opacity', 0.3);
+
+  // Labels for larger nodes
+  nodes.filter(d => d.entryCount >= 30)
+    .append('text')
+    .text(d => d.label)
+    .attr('text-anchor', 'middle')
+    .attr('dy', d => sizeScale(d.entryCount) + 12)
+    .attr('font-size', d => Math.min(11, 7 + d.entryCount / 50))
+    .attr('fill', '#8899aa')
+    .attr('pointer-events', 'none');
+
+  // Tooltip
+  const tooltip = d3.select('#tooltip');
+  nodes.on('mouseenter', (event, d) => {
+    tooltip.style('display', 'block')
+      .html(`<span class="tt-name type-${d.type}">${d.label}</span><br>
+             <span class="tt-count">${d.type} &middot; ${d.entryCount} entries</span>`);
+  })
+  .on('mousemove', (event) => {
+    tooltip.style('left', (event.clientX + 12) + 'px')
+      .style('top', (event.clientY - 10) + 'px');
+  })
+  .on('mouseleave', () => tooltip.style('display', 'none'));
+
+  // Click to focus
+  nodes.on('click', (event, d) => {
+    event.stopPropagation();
+    focusNode(d.id);
+  });
+
+  // Simulation
+  simulation = d3.forceSimulation(graph.nodes)
+    .force('link', d3.forceLink(graph.edges).id(d => d.id).distance(80).strength(d => Math.min(0.3, d.weight / 50)))
+    .force('charge', d3.forceManyBody().strength(-120).distanceMax(400))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('collision', d3.forceCollide().radius(d => sizeScale(d.entryCount) + 4))
+    .on('tick', () => {
+      links
+        .attr('x1', d => d.source.x)
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y);
+      nodes.attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+
+  // Store references for focus/filter
+  window._nodes = nodes;
+  window._links = links;
+  window._sizeScale = sizeScale;
+  window._zoom = zoom;
+  window._svg = svg;
+  window._container = container;
+
+  // Drag handlers
+  function dragStart(event, d) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x; d.fy = d.y;
+  }
+  function dragging(event, d) { d.fx = event.x; d.fy = event.y; }
+  function dragEnd(event, d) {
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = null; d.fy = null;
+  }
+}
+
+// ── Focus / Unfocus ──────────────────────────────────────────────────────────
+
+function getNeighbors(nodeId) {
+  const neighbors = new Set();
+  const edgeData = [];
+  graph.edges.forEach(e => {
+    const src = typeof e.source === 'object' ? e.source.id : e.source;
+    const tgt = typeof e.target === 'object' ? e.target.id : e.target;
+    if (src === nodeId) { neighbors.add(tgt); edgeData.push(e); }
+    if (tgt === nodeId) { neighbors.add(src); edgeData.push(e); }
+  });
+  return { neighbors, edgeData };
+}
+
+function focusNode(nodeId) {
+  focusedNode = nodeId;
+  selectedConnection = null;
+
+  const { neighbors, edgeData } = getNeighbors(nodeId);
+  const node = graph.nodes.find(n => n.id === nodeId);
+
+  // Dim non-neighbors
+  window._nodes.select('circle')
+    .attr('fill-opacity', d => (d.id === nodeId || neighbors.has(d.id)) ? 0.9 : 0.05)
+    .attr('stroke-opacity', d => (d.id === nodeId || neighbors.has(d.id)) ? 0.5 : 0.02);
+  window._nodes.select('text')
+    .attr('fill-opacity', d => (d.id === nodeId || neighbors.has(d.id)) ? 1 : 0.05);
+
+  window._links
+    .attr('stroke-opacity', d => {
+      const src = typeof d.source === 'object' ? d.source.id : d.source;
+      const tgt = typeof d.target === 'object' ? d.target.id : d.target;
+      return (src === nodeId || tgt === nodeId) ? 0.6 : 0.02;
+    })
+    .attr('stroke', d => {
+      const src = typeof d.source === 'object' ? d.source.id : d.source;
+      const tgt = typeof d.target === 'object' ? d.target.id : d.target;
+      return (src === nodeId || tgt === nodeId) ? '#3a5080' : '#1e2538';
+    });
+
+  // Center on the node
+  if (node && typeof node.x === 'number') {
+    const transform = d3.zoomIdentity
+      .translate(window.innerWidth / 2, window.innerHeight / 2)
+      .scale(1.5)
+      .translate(-node.x, -node.y);
+    window._svg.transition().duration(750).call(window._zoom.transform, transform);
+  }
+
+  // Open panel
+  showPanel(nodeId, edgeData);
+}
+
+function unfocus() {
+  focusedNode = null;
+  selectedConnection = null;
+
+  window._nodes.select('circle')
+    .attr('fill-opacity', d => activeFilters.has(d.type) ? 0.8 : 0.05)
+    .attr('stroke-opacity', d => activeFilters.has(d.type) ? 0.3 : 0.02);
+  window._nodes.select('text')
+    .attr('fill-opacity', d => activeFilters.has(d.type) ? 1 : 0.05);
+
+  window._links.attr('stroke-opacity', 0.4).attr('stroke', '#1e2538');
+
+  closePanel();
+
+  // Reset zoom
+  window._svg.transition().duration(500)
+    .call(window._zoom.transform, d3.zoomIdentity
+      .translate(window.innerWidth / 2, window.innerHeight / 2)
+      .scale(0.8)
+      .translate(-window.innerWidth / 2, -window.innerHeight / 2));
+}
+
+// ── Panel ────────────────────────────────────────────────────────────────────
+
+function setupPanel() {
+  document.getElementById('panel-close').addEventListener('click', () => {
+    unfocus();
+  });
+}
+
+function showPanel(nodeId, edgeData) {
+  const node = graph.nodes.find(n => n.id === nodeId);
+  const panel = document.getElementById('panel');
+  const content = document.getElementById('panel-content');
+
+  // Group connections by type
+  const connectionsByType = {};
+  edgeData.forEach(e => {
+    const src = typeof e.source === 'object' ? e.source.id : e.source;
+    const tgt = typeof e.target === 'object' ? e.target.id : e.target;
+    const otherId = src === nodeId ? tgt : src;
+    const other = graph.nodes.find(n => n.id === otherId);
+    if (!other) return;
+    if (!activeFilters.has(other.type)) return;
+    if (!connectionsByType[other.type]) connectionsByType[other.type] = [];
+    connectionsByType[other.type].push({ node: other, weight: e.weight, entryIds: e.entryIds });
+  });
+
+  // Sort each group by weight
+  Object.values(connectionsByType).forEach(arr =>
+    arr.sort((a, b) => b.weight - a.weight)
+  );
+
+  let html = `
+    <h2 class="type-${node.type}">${node.label}</h2>
+    <span class="panel-type-badge bg-${node.type} type-${node.type}">${node.type}</span>
+    <div class="panel-entry-count">${node.entryCount} WoB entries</div>
+    <div class="connections-section" id="connections-list">
+  `;
+
+  const typeOrder = ['character', 'shard', 'magic', 'world', 'concept', 'book'];
+  for (const type of typeOrder) {
+    const conns = connectionsByType[type];
+    if (!conns || conns.length === 0) continue;
+    html += `<h3 class="type-${type}">${TYPE_LABELS[type] || type} (${conns.length})</h3>`;
+    for (const c of conns) {
+      html += `
+        <div class="connection-item" data-node="${c.node.id}" data-entries='${JSON.stringify(c.entryIds)}'>
+          <span class="type-${c.node.type}">${c.node.label}</span>
+          <span class="connection-weight">${c.weight}</span>
+        </div>`;
+    }
+  }
+
+  html += `</div><div id="entries-section"></div>`;
+  content.innerHTML = html;
+
+  // Wire up connection clicks
+  content.querySelectorAll('.connection-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const otherNodeId = el.dataset.node;
+      const entryIds = JSON.parse(el.dataset.entries);
+      showEntries(nodeId, otherNodeId, entryIds);
+    });
+  });
+
+  panel.classList.add('open');
+}
+
+function showEntries(nodeId, otherNodeId, entryIds) {
+  const node = graph.nodes.find(n => n.id === nodeId);
+  const other = graph.nodes.find(n => n.id === otherNodeId);
+  const section = document.getElementById('entries-section');
+
+  let html = `
+    <div class="entries-header">
+      <h3>${node.label} &harr; ${other.label}</h3>
+      <button class="entries-back" id="entries-back">&larr; Back</button>
+    </div>
+  `;
+
+  for (const eid of entryIds) {
+    const entry = entries[eid];
+    if (!entry) continue;
+
+    const lines = entry.lines || [];
+    const collapsed = lines.length > 3;
+
+    html += `<div class="wob-entry">
+      <div class="wob-event">${entry.event} &middot; ${entry.date}</div>`;
+
+    const visibleLines = collapsed ? lines.slice(0, 3) : lines;
+    for (const line of visibleLines) {
+      const isBrandon = line.speaker.toLowerCase().includes('brandon') || line.speaker.toLowerCase().includes('sanderson');
+      html += `<div class="wob-line">
+        <span class="wob-speaker ${isBrandon ? 'brandon' : 'questioner'}">${line.speaker}:</span>
+        ${line.text}
+      </div>`;
+    }
+
+    if (collapsed) {
+      const hiddenHtml = lines.slice(3).map(line => {
+        const isBrandon = line.speaker.toLowerCase().includes('brandon') || line.speaker.toLowerCase().includes('sanderson');
+        return `<div class="wob-line">
+          <span class="wob-speaker ${isBrandon ? 'brandon' : 'questioner'}">${line.speaker}:</span>
+          ${line.text}
+        </div>`;
+      }).join('');
+      html += `<div class="wob-hidden" style="display:none">${hiddenHtml}</div>`;
+      html += `<button class="wob-expand">Show ${lines.length - 3} more lines</button>`;
+    }
+
+    const tags = (entry.tags || []).slice(0, 8);
+    if (tags.length) {
+      html += `<div class="wob-tags">${tags.map(t => `<span class="wob-tag">${t}</span>`).join('')}</div>`;
+    }
+
+    html += `</div>`;
+  }
+
+  section.innerHTML = html;
+  section.style.display = 'block';
+
+  // Wire up expand buttons
+  section.querySelectorAll('.wob-expand').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const hidden = btn.previousElementSibling;
+      if (hidden.style.display === 'none') {
+        hidden.style.display = 'block';
+        btn.textContent = 'Show less';
+      } else {
+        hidden.style.display = 'none';
+        btn.textContent = btn.dataset.originalText || `Show more`;
+      }
+    });
+  });
+
+  // Back button
+  document.getElementById('entries-back').addEventListener('click', () => {
+    section.style.display = 'none';
+  });
+}
+
+function closePanel() {
+  document.getElementById('panel').classList.remove('open');
+}
+
+// ── Filters ──────────────────────────────────────────────────────────────────
+
+function buildFilters() {
+  const container = document.getElementById('filters');
+  for (const [type, label] of Object.entries(TYPE_LABELS)) {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.style.borderColor = TYPE_COLORS[type];
+    btn.style.color = TYPE_COLORS[type];
+    btn.textContent = label;
+    btn.dataset.type = type;
+    btn.addEventListener('click', () => toggleFilter(type, btn));
+    container.appendChild(btn);
+  }
+}
+
+function toggleFilter(type, btn) {
+  if (activeFilters.has(type)) {
+    activeFilters.delete(type);
+    btn.classList.add('off');
+  } else {
+    activeFilters.add(type);
+    btn.classList.remove('off');
+  }
+  applyFilters();
+}
+
+function applyFilters() {
+  window._nodes.select('circle')
+    .attr('fill-opacity', d => activeFilters.has(d.type) ? 0.8 : 0.05)
+    .attr('stroke-opacity', d => activeFilters.has(d.type) ? 0.3 : 0.02);
+  window._nodes.select('text')
+    .attr('fill-opacity', d => activeFilters.has(d.type) ? 1 : 0.05);
+}
+
+// ── Search ───────────────────────────────────────────────────────────────────
+
+function setupSearch() {
+  const input = document.getElementById('search-input');
+  const suggestions = document.getElementById('search-suggestions');
+  const clearBtn = document.getElementById('search-clear');
+  let activeIndex = -1;
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    clearBtn.style.display = q ? 'block' : 'none';
+    if (q.length < 1) { suggestions.style.display = 'none'; return; }
+
+    const matches = graph.nodes
+      .filter(n => n.id.includes(q) || n.label.toLowerCase().includes(q))
+      .sort((a, b) => b.entryCount - a.entryCount)
+      .slice(0, 15);
+
+    if (matches.length === 0) { suggestions.style.display = 'none'; return; }
+
+    activeIndex = -1;
+    suggestions.innerHTML = matches.map((m, i) => `
+      <div class="suggestion" data-id="${m.id}" data-index="${i}">
+        <span class="type-${m.type}">${m.label}</span>
+        <span class="tag-type bg-${m.type} type-${m.type}">${m.type}</span>
+      </div>
+    `).join('');
+    suggestions.style.display = 'block';
+
+    suggestions.querySelectorAll('.suggestion').forEach(el => {
+      el.addEventListener('click', () => {
+        input.value = el.querySelector('span').textContent;
+        suggestions.style.display = 'none';
+        focusNode(el.dataset.id);
+      });
+    });
+  });
+
+  input.addEventListener('keydown', (e) => {
+    const items = suggestions.querySelectorAll('.suggestion');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIndex = Math.min(activeIndex + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIndex = Math.max(activeIndex - 1, 0);
+      items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeIndex >= 0 && items[activeIndex]) {
+        items[activeIndex].click();
+      } else if (items.length > 0) {
+        items[0].click();
+      }
+    } else if (e.key === 'Escape') {
+      suggestions.style.display = 'none';
+      input.blur();
+      unfocus();
+    }
+  });
+
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    clearBtn.style.display = 'none';
+    suggestions.style.display = 'none';
+    unfocus();
+  });
+
+  // Close suggestions on outside click
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#search-box')) suggestions.style.display = 'none';
+  });
+}
+
+// ── Keyboard shortcuts ───────────────────────────────────────────────────────
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && !e.target.matches('input')) {
+    e.preventDefault();
+    document.getElementById('search-input').focus();
+  }
+  if (e.key === 'Escape') {
+    unfocus();
+  }
+});
+
+// ── Go ───────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
