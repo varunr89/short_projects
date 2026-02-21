@@ -1148,7 +1148,7 @@
 
 <!-- ── Review Panel ─────────────────────────────────────────── -->
 <div id="review-panel">
-  <button id="review-close-btn">&times;</button>
+  <button id="review-close-btn" aria-label="Close review panel">&times;</button>
   <h3>Review Implicit Tags</h3>
   <div class="review-subtitle" id="review-subtitle">No implicit tags computed yet</div>
   <div id="review-actions">
@@ -2351,6 +2351,7 @@ function loadScoresAndCompute(applyBtn, statsEl) {
 
 var implicitLinkGroup = null;
 var implicitLinks = null;
+var _originalTick = null;
 
 function renderImplicitEdges(result) {
   var container = window._container;
@@ -2443,14 +2444,12 @@ function renderImplicitEdges(result) {
       tooltip.style('display', 'none');
     });
 
-  // Update implicit edge positions on each tick
-  var originalTick = simulation.on('tick');
+  // Store original tick handler once, then extend it with implicit edge updates
+  if (!_originalTick) {
+    _originalTick = simulation.on('tick');
+  }
   simulation.on('tick', function() {
-    // Call original tick handler
-    window._links
-      .attr('x1', function(d) { return d.source.x; }).attr('y1', function(d) { return d.source.y; })
-      .attr('x2', function(d) { return d.target.x; }).attr('y2', function(d) { return d.target.y; });
-    window._nodes.attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+    _originalTick();
 
     // Update implicit edges
     if (implicitLinks) {
@@ -2532,6 +2531,25 @@ function setupReviewPanel() {
       renderReviewRows(window._lastImplicitResult.implicitTags, sortSelect.value, filterCheckbox.checked);
     }
   });
+
+  // Event delegation for confirm/reject buttons (avoids 2*N listeners per render)
+  var reviewTable = document.getElementById('review-table');
+  reviewTable.addEventListener('click', function(e) {
+    var btn = e.target;
+    if (!btn.classList.contains('review-confirm') && !btn.classList.contains('review-reject')) return;
+    var row = btn.closest('.review-row');
+    if (!row) return;
+    var key = row.dataset.key;
+    if (btn.classList.contains('review-confirm')) {
+      reviewState[key] = 'confirmed';
+      row.classList.remove('rejected');
+      row.classList.add('confirmed');
+    } else {
+      reviewState[key] = 'rejected';
+      row.classList.remove('confirmed');
+      row.classList.add('rejected');
+    }
+  });
 }
 
 function populateReviewPanel(result) {
@@ -2565,11 +2583,11 @@ function renderReviewRows(implicitTags, sortMode, filterUnreviewed) {
   } else if (sortMode === 'entity-asc') {
     sorted.sort(function(a, b) { return a.entity.localeCompare(b.entity); });
   } else if (sortMode === 'status') {
-    var statusOrder = { undefined: 0, 'confirmed': 1, 'rejected': 2 };
+    var statusOrder = { 'pending': 0, 'confirmed': 1, 'rejected': 2 };
     sorted.sort(function(a, b) {
-      var sa = reviewState[a.entity + '::' + a.entryId] || undefined;
-      var sb = reviewState[b.entity + '::' + b.entryId] || undefined;
-      var diff = (statusOrder[sa] || 0) - (statusOrder[sb] || 0);
+      var sa = reviewState[a.entity + '::' + a.entryId] || 'pending';
+      var sb = reviewState[b.entity + '::' + b.entryId] || 'pending';
+      var diff = statusOrder[sa] - statusOrder[sb];
       if (diff !== 0) return diff;
       return b.score - a.score;
     });
@@ -2625,28 +2643,14 @@ function renderReviewRows(implicitTags, sortMode, filterUnreviewed) {
     confirmBtn.className = 'review-confirm';
     confirmBtn.textContent = '\u2713';
     confirmBtn.title = 'Confirm';
-    confirmBtn.dataset.key = key;
-    confirmBtn.addEventListener('click', (function(k, r) {
-      return function() {
-        reviewState[k] = 'confirmed';
-        r.classList.remove('rejected');
-        r.classList.add('confirmed');
-      };
-    })(key, row));
+    confirmBtn.setAttribute('aria-label', 'Confirm');
     actionsCell.appendChild(confirmBtn);
 
     var rejectBtn = document.createElement('button');
     rejectBtn.className = 'review-reject';
     rejectBtn.textContent = '\u2717';
     rejectBtn.title = 'Reject';
-    rejectBtn.dataset.key = key;
-    rejectBtn.addEventListener('click', (function(k, r) {
-      return function() {
-        reviewState[k] = 'rejected';
-        r.classList.remove('confirmed');
-        r.classList.add('rejected');
-      };
-    })(key, row));
+    rejectBtn.setAttribute('aria-label', 'Reject');
     actionsCell.appendChild(rejectBtn);
 
     row.appendChild(actionsCell);
@@ -2698,7 +2702,7 @@ function loadReviews() {
         if (data.reviews && Array.isArray(data.reviews)) {
           for (var i = 0; i < data.reviews.length; i++) {
             var r = data.reviews[i];
-            if (r.entity && r.entryId && r.status && r.status !== 'pending') {
+            if (r.entity && r.entryId && (r.status === 'confirmed' || r.status === 'rejected')) {
               reviewState[r.entity + '::' + r.entryId] = r.status;
             }
           }

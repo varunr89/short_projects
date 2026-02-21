@@ -300,7 +300,6 @@ test('save reviews generates JSON download', async function({ page }) {
 
   // Read the downloaded content and verify structure
   var filePath = await download.path();
-  var fs = require('fs');
   var content = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
   expect(content.timestamp).toBeTruthy();
