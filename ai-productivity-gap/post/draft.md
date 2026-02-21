@@ -8,19 +8,11 @@
 
 ---
 
-I believe deeply that AI will improve the human condition. A lot of people disagree with me on this. That's fine.
+AI has become a very polarizing topic on par with politics. I have deep faith in the ability of deep neural networks and math to improve the human condition but also acknowledge the problem that current AI has its pitfalls (see my writeup on car wash test - feb 2026). I've spent two and a half years testing every major AI model release. Not through demos. By integrating each one into real work: customer communications, data analysis, code generation, product planning. But in every team I have worked with, at most 1 in 20 engineers had truly adopted AI into their daily workflow. Not just across the company but among core engineering and product teams. Young, tech-savvy people who build software for a living. The people who should have been first.
 
-I've spent two and a half years testing every major AI model release. Not through demos. By integrating each one into real work: customer communications, data analysis, code generation, product planning. I subscribe to every frontier AI service and test them end-to-end.
+Last week, Apollo's chief economist Torsten Slok put it perfectly: "AI is everywhere except in the incoming macroeconomic data." He was echoing Robert Solow's 1987 line about computers: "You can see the computer age everywhere but in the productivity statistics." GPT-5.2 just derived an original result in theoretical physics. Penn Wharton measured AI's actual aggregate impact at 0.01 percentage points. The tools work. And almost nobody is using them.
 
-The tools work. And almost nobody is using them.
-
-Last week, Apollo's chief economist Torsten Slok put it perfectly: "AI is everywhere except in the incoming macroeconomic data." He was echoing Robert Solow's 1987 line about computers: "You can see the computer age everywhere but in the productivity statistics." GPT-5.2 just derived an original result in theoretical physics. Penn Wharton measured AI's actual aggregate impact at 0.01 percentage points.
-
-One curve is practically vertical. The other is flat.
-
-In every team I worked with at a large tech company, at most 1 in 20 engineers had truly adopted AI into their daily workflow. Not across the company. Among core engineering and product teams. Young, tech-savvy people who build software for a living. The people who should have been first.
-
-That's not an anecdote. Once I started looking at the research, I found it everywhere.
+The AI capability curve vs time is practically vertical. The other (organizational productivity) is flat. That's not an anecdote. Once I started looking at the research, I found it everywhere.
 
 ## The mismatch
 
@@ -52,7 +44,7 @@ You're multiplying big numbers by small numbers everywhere. Lab studies find 14-
 
 ### Amdahl's Law
 
-Even among the people who do use AI, the gains disappoint. I spend maybe 11% of my time writing code. (A Microsoft study of 484 developers found the same number.) The rest is meetings, debugging, architecture, code review. All the stuff AI can't touch yet.
+Even among the people who do use AI, the gains disappoint. I spend maybe 10% of my time writing code. (A Microsoft study of 484 developers found the same number.) The rest is meetings, debugging, architecture, code review. All the stuff AI can't touch yet.
 
 If AI makes coding 3x faster, the theoretical maximum improvement is 15%. Even if coding became instant, the max is 25%. That's Amdahl's Law: you can only speed up the fraction of work AI touches.
 
@@ -95,7 +87,7 @@ Google's AI Overview told users to eat rocks. GPT-5.2 Pro spent nearly three min
 
 Then there's the marketing. Companies spent $8 million per Super Bowl spot. 23% of ads featured AI. Google's Gemini ad hallucinated a fact about Gouda cheese on national television. Only 32% of Americans trust AI. Can you blame them?
 
-The irony is that the tools that actually work (terminal-based coding agents, agentic workflows) succeed because they target constrained domains where outputs are immediately verifiable. Does the code compile? Does the test pass? But that's not flashy enough for a Super Bowl ad.
+> *The irony is that the tools that actually work (terminal-based coding agents, agentic workflows) succeed because they target constrained domains where outputs are immediately verifiable. Does the code compile? Does the test pass? But that's not flashy enough for a Super Bowl ad.*
 
 BCG found that leadership support alone swings positive AI sentiment from 15% to 55%. That's a 40-point swing just from managers taking it seriously.
 
@@ -107,7 +99,7 @@ BCG's data: 5+ hours of training gets you to 79% regular usage vs. 67% with less
 
 ### Enterprise tools aren't ready
 
-Companies shove half-baked AI wrappers down employees' throats. "Use our internal copilot. It's approved by security." You try it. It's slow. The model is two generations behind. You go back to whatever you were doing before.
+Companies shove half-baked AI wrappers down employees' throats. "Use our internal chatbot. It's approved by security." You try it. It's slow. The model is two generations behind. You go back to whatever you were doing before.
 
 Meanwhile, the tools that actually work are blocked. So 78% of AI users bring their own tools. JPMorgan figured this out. They went from banning ChatGPT to deploying LLM Suite to 200,000 employees. Solve compliance at the infrastructure level. Build guardrails, not gates.
 
