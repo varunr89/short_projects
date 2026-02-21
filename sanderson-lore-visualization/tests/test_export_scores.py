@@ -100,9 +100,9 @@ class TestScoresJsonSchema:
             cal = entity["calibration"]
             assert "mean" in cal, f"{name} calibration missing mean"
             assert "std" in cal, f"{name} calibration missing std"
-            assert "p10" in cal, f"{name} calibration missing p10"
-            assert "p25" in cal, f"{name} calibration missing p25"
-            assert "p50" in cal, f"{name} calibration missing p50"
+            for pct in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+                key = f"p{pct}"
+                assert key in cal, f"{name} calibration missing {key}"
 
     def test_score_arrays_match_prototype_count(self, run_export):
         """Each entry's score array length must equal the prototype count."""
@@ -155,18 +155,18 @@ class TestSpecificityScores:
     def test_cosmere_low_specificity(self, run_export):
         """Cosmere is a hub topic -- many entries are about it, so specificity is low."""
         spec = run_export["entities"]["cosmere"]["specificity"]
-        assert spec < 1.0, f"Cosmere specificity should be < 1.0, got {spec}"
+        assert spec < 2.0, f"Cosmere specificity should be < 2.0, got {spec}"
 
     def test_niche_entities_high_specificity(self, run_export):
         """At least some entities should have notably higher specificity than hubs."""
-        # With floor=0.30, most entries match most entities, so specificity
-        # values are compressed. Niche entities should still be measurably
-        # higher than hub topics like cosmere (which is near 0).
+        # With floor=0.60, niche entities should have much higher specificity
+        # than hub topics like cosmere (which is near 0). The max observed
+        # specificity at this floor is ~7.91, with 92% of entities above 2.0.
         high_spec = [
             name for name, ent in run_export["entities"].items()
-            if ent["specificity"] > 0.5
+            if ent["specificity"] > 2.0
         ]
-        assert len(high_spec) > 0, "No entities found with specificity > 0.5"
+        assert len(high_spec) > 0, "No entities found with specificity > 2.0"
 
     def test_all_specificity_positive(self, run_export):
         for name, entity in run_export["entities"].items():
@@ -227,19 +227,20 @@ class TestScoreValues:
                     )
 
     def test_scores_above_floor(self, run_export):
-        """All stored scores should have max-across-prototypes >= floor."""
+        """All stored scores should have max-across-prototypes > floor."""
         floor = run_export["meta"]["floor"]
         for name, entity in run_export["entities"].items():
             for eid, score_arr in entity["scores"].items():
                 max_score = max(score_arr)
-                assert max_score >= floor - 1e-6, (
-                    f"{name} entry {eid}: max score {max_score} < floor {floor}"
+                assert max_score > floor - 1e-6, (
+                    f"{name} entry {eid}: max score {max_score} not > floor {floor}"
                 )
 
     def test_kaladin_explicit_entries_score_high(self, run_export):
         """
-        Kaladin's explicitly-tagged entries should have high similarity
-        (max score > 0.5 for most).
+        Kaladin's explicitly-tagged entries should have high similarity.
+        With floor=0.60, only entries scoring > 0.60 are stored. Most of
+        kaladin's explicitly-tagged entries should be present and score high.
         """
         # Load explicit entry IDs for kaladin
         wob_path = PROJECT_ROOT.parent / "words-of-brandon" / "wob_entries.json"
@@ -253,17 +254,17 @@ class TestScoreValues:
 
         kal_scores = run_export["entities"]["kaladin"]["scores"]
         matched = 0
-        above_half = 0
+        above_threshold = 0
         for eid in kaladin_eids:
             if eid in kal_scores:
                 matched += 1
-                if max(kal_scores[eid]) > 0.5:
-                    above_half += 1
+                if max(kal_scores[eid]) > 0.65:
+                    above_threshold += 1
 
         assert matched > 10, f"Expected >10 matched kaladin entries, got {matched}"
-        ratio = above_half / matched
+        ratio = above_threshold / matched
         assert ratio > 0.8, (
-            f"Only {ratio:.0%} of kaladin explicit entries scored > 0.5 "
+            f"Only {ratio:.0%} of kaladin explicit entries scored > 0.65 "
             f"(expected > 80%)"
         )
 

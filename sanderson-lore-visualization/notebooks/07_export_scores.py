@@ -5,7 +5,7 @@ For each entity tag (excluding meta/book types) with >= 3 explicitly tagged
 entries, this script computes:
   - Multi-prototype reference embeddings (1, 2, or 3 via k-means)
   - Per-entry cosine similarity scores against each prototype
-  - Calibration stats (mean, std, p10, p25, p50) from explicitly-tagged entries
+  - Calibration stats (mean, std, p10-p50 in steps of 5) from explicitly-tagged entries
   - Specificity score: log(total_entries / entries_above_floor)
 
 Inputs:
@@ -54,8 +54,8 @@ parser.add_argument(
 parser.add_argument(
     "--floor",
     type=float,
-    default=0.30,
-    help="Minimum max-across-prototypes score to include an entry (default: 0.30)",
+    default=0.60,
+    help="Minimum max-across-prototypes score to include an entry (default: 0.60)",
 )
 parser.add_argument(
     "--two-proto-min",
@@ -68,12 +68,6 @@ parser.add_argument(
     type=int,
     default=10,
     help="Minimum explicit entries for 3 prototypes (default: 10)",
-)
-parser.add_argument(
-    "--max-per-entity",
-    type=int,
-    default=500,
-    help="Max entries to store per entity, ranked by max score (default: 500)",
 )
 args = parser.parse_args()
 
@@ -110,7 +104,6 @@ print(f"Model: {args.model}")
 print(f"Embeddings: {embeddings.shape} ({embeddings.dtype})")
 print(f"Floor: {args.floor}")
 print(f"Proto thresholds: two >= {args.two_proto_min}, three >= {args.three_proto_min}")
-print(f"Max entries per entity: {args.max_per_entity}")
 
 # -- 2. Load raw WoB entries and tag classifications -------------------------
 
@@ -212,13 +205,14 @@ for tag in sorted(entity_tags):
 
     cal_mean = float(np.mean(explicit_max))
     cal_std = float(np.std(explicit_max))
-    cal_p10 = float(np.percentile(explicit_max, 10))
-    cal_p25 = float(np.percentile(explicit_max, 25))
-    cal_p50 = float(np.percentile(explicit_max, 50))
+    calibration = {"mean": round(cal_mean, 4), "std": round(cal_std, 4)}
+    for pct in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+        key = f"p{pct}"
+        calibration[key] = round(float(np.percentile(explicit_max, pct)), 4)
 
     # 4f. Specificity: log(total_entries / entries_above_floor)
     max_scores = sim.max(axis=1)  # (n_entries,)
-    above_floor_mask = max_scores >= args.floor
+    above_floor_mask = max_scores > args.floor
     entries_above_floor = int(above_floor_mask.sum())
 
     if entries_above_floor == 0:
@@ -227,15 +221,9 @@ for tag in sorted(entity_tags):
     else:
         specificity = float(math.log(total_entries / entries_above_floor))
 
-    # 4g. Store top entries by max score, capped at --max-per-entity
-    above_indices = np.where(above_floor_mask)[0]
-    # Sort by max score descending, take top N
-    above_max = max_scores[above_indices]
-    rank_order = np.argsort(above_max)[::-1]
-    top_indices = above_indices[rank_order[:args.max_per_entity]]
-
+    # 4g. Store all entries above floor
     scores_dict = {}
-    for idx in top_indices:
+    for idx in np.where(above_floor_mask)[0]:
         eid = entry_ids[idx]
         score_arr = [round(float(s), 2) for s in sim[idx]]
         scores_dict[str(eid)] = score_arr
@@ -243,13 +231,7 @@ for tag in sorted(entity_tags):
     entities_output[tag] = {
         "specificity": round(specificity, 4),
         "entries_above_floor": entries_above_floor,
-        "calibration": {
-            "mean": round(cal_mean, 4),
-            "std": round(cal_std, 4),
-            "p10": round(cal_p10, 4),
-            "p25": round(cal_p25, 4),
-            "p50": round(cal_p50, 4),
-        },
+        "calibration": calibration,
         "prototypes": n_proto,
         "scores": scores_dict,
     }
@@ -261,7 +243,6 @@ output = {
         "model": args.model,
         "floor": args.floor,
         "total_entries": total_entries,
-        "max_per_entity": args.max_per_entity,
         "proto_thresholds": {
             "two": args.two_proto_min,
             "three": args.three_proto_min,
