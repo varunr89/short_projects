@@ -89,6 +89,7 @@ test('tagging engine functions are accessible in page', async ({ page }) => {
 
   // Verify that the engine functions are defined globally
   const fnNames = [
+    'resolveScore',
     'computeEffectiveThreshold',
     'filterBySpecificity',
     'applyMarginFilter',

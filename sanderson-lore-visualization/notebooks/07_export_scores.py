@@ -19,7 +19,7 @@ Outputs:
 
 Usage:
     python 07_export_scores.py
-    python 07_export_scores.py --model azure_openai --floor 0.25
+    python 07_export_scores.py --model azure_openai --floor 0.70
     python 07_export_scores.py --two-proto-min 5 --three-proto-min 10
 """
 

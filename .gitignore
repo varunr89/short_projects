@@ -16,5 +16,12 @@ env/
 .env
 *.log
 
+# Embedding caches (large binary files)
+**/embeddings_cache/
+*.npy
+
+# Precomputed scores (large generated JSON)
+**/data/scores.json
+
 # OS
 .DS_Store

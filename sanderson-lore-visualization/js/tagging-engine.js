@@ -208,12 +208,23 @@ function rebuildEdges(explicitTagsByEntry, implicitTags, minEdgeWeight) {
   if (minEdgeWeight === undefined) minEdgeWeight = 2;
 
   // Merge explicit and implicit tags per entry
-  // Track which entity-entry pairs are implicit for edge typing
+  // Track which entity-entry pairs are implicit-only for edge typing
+  // Skip implicit tags that duplicate an explicit tag on the same entry
   var implicitPairs = {};
   for (var i = 0; i < implicitTags.length; i++) {
     var tag = implicitTags[i];
-    var pairKey = tag.entity + '::' + tag.entryId;
-    implicitPairs[pairKey] = true;
+    var explicitTags = explicitTagsByEntry[tag.entryId];
+    var isAlsoExplicit = false;
+    if (explicitTags) {
+      if (explicitTags.has) {
+        isAlsoExplicit = explicitTags.has(tag.entity);
+      } else if (Array.isArray(explicitTags)) {
+        isAlsoExplicit = explicitTags.indexOf(tag.entity) !== -1;
+      }
+    }
+    if (!isAlsoExplicit) {
+      implicitPairs[tag.entity + '::' + tag.entryId] = true;
+    }
   }
 
   // Build combined tags per entry
@@ -368,11 +379,13 @@ function rebuildEdges(explicitTagsByEntry, implicitTags, minEdgeWeight) {
  */
 function computeImplicitTags(scoresData, explicitTagsByEntry, baselineConnected, settings) {
   // Default settings
-  var calibrationPercentile = (settings && settings.calibrationPercentile) || 25;
+  var calibrationPercentile = (settings && settings.calibrationPercentile !== undefined)
+    ? settings.calibrationPercentile : 25;
   var minSpecificity = (settings && settings.minSpecificity !== undefined) ? settings.minSpecificity : 0;
   var confidenceMargin = (settings && settings.confidenceMargin !== undefined) ? settings.confidenceMargin : 0;
   var mustBridge = (settings && settings.mustBridge) || false;
-  var minEdgeWeight = (settings && settings.minEdgeWeight) || 2;
+  var minEdgeWeight = (settings && settings.minEdgeWeight !== undefined)
+    ? settings.minEdgeWeight : 2;
 
   // Step 1: Filter by specificity
   var entities = filterBySpecificity(scoresData.entities, minSpecificity);

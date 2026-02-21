@@ -7,7 +7,6 @@ scores.json is loaded and validated by every test class.
 """
 
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -18,9 +17,15 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
+CACHE_DIR = DATA_DIR / "embeddings_cache"
 SCORES_PATH = DATA_DIR / "scores.json"
 SCRIPT_PATH = PROJECT_ROOT / "notebooks" / "07_export_scores.py"
 VENV_PYTHON = PROJECT_ROOT / "venv" / "bin" / "python3"
+
+pytestmark = pytest.mark.skipif(
+    not (CACHE_DIR / "azure_openai.npy").exists(),
+    reason="Real embedding data not available (191 MB .npy file)",
+)
 
 
 # -- Fixture: run the export script once, load scores.json -------------------
@@ -184,7 +189,6 @@ class TestMultiPrototype:
 
     def test_small_entities_single_proto(self, run_export):
         """Entities with 3-4 explicitly-tagged entries should have 1 prototype."""
-        two_thresh = run_export["meta"]["proto_thresholds"]["two"]
         single_proto_found = False
         for name, entity in run_export["entities"].items():
             if entity["prototypes"] == 1:
