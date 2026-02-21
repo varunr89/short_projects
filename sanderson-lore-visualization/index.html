@@ -4,366 +4,912 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cosmere Knowledge Graph — Words of Brandon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+  /* ── Variables ──────────────────────────────────────────────── */
+  :root {
+    --gem-sapphire: #2E5BA8;
+    --gem-sapphire-glow: #4A8BDF;
+    --gem-sapphire-light: #6AADFF;
+    --gem-emerald: #2D8B57;
+    --gem-emerald-glow: #3FBF7F;
+    --gem-emerald-light: #5FE8A0;
+    --gem-amethyst: #7B4BAA;
+    --gem-amethyst-glow: #A66ED8;
+    --gem-amethyst-light: #C490F0;
+    --gem-heliodor: #C49A2A;
+    --gem-heliodor-glow: #E8C44A;
+    --gem-heliodor-light: #F0D870;
+    --gem-ruby: #B03A3A;
+    --gem-ruby-glow: #D45A5A;
+    --gem-ruby-light: #E87070;
+
+    --bg-deep: #080C14;
+    --bg-edge: #0E1524;
+    --stormlight: #C8DFFF;
+    --crem: #2A2F3A;
+    --frost: rgba(200, 220, 255, 0.05);
+
+    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-body: system-ui, -apple-system, sans-serif;
+
+    --panel-gem-color: var(--gem-sapphire);
+    --panel-gem-glow: var(--gem-sapphire-glow);
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    font-family: system-ui, -apple-system, sans-serif;
-    background: #0a0e17;
+    font-family: var(--font-body);
+    background: var(--bg-deep);
+    background: radial-gradient(ellipse at center, var(--bg-deep) 0%, var(--bg-edge) 100%);
     color: #e0e0e0;
     overflow: hidden;
     height: 100vh;
   }
 
-  /* ── Graph canvas ───────────────────────────────────────────── */
+  /* ── Loading screen ────────────────────────────────────────── */
+  #loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-deep);
+    z-index: 100;
+    gap: 24px;
+    transition: opacity 0.6s ease;
+  }
+  #loading.fade-out { opacity: 0; }
+
+  #glyph {
+    animation: breathe 3s ease-in-out infinite;
+    animation-delay: 2s;
+    animation-fill-mode: backwards;
+  }
+
+  .glyph-ring {
+    fill: none;
+    stroke: var(--stormlight);
+    stroke-width: 2;
+    stroke-dasharray: 251;
+    stroke-dashoffset: 251;
+    animation: drawStroke 1.5s ease-out forwards;
+  }
+  .glyph-ray {
+    fill: none;
+    stroke: var(--stormlight);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 24;
+    stroke-dashoffset: 24;
+    animation: drawStroke 0.3s ease-out forwards;
+  }
+  .glyph-dot {
+    fill: var(--stormlight);
+    opacity: 0;
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+  .glyph-inner {
+    fill: none;
+    stroke: var(--stormlight);
+    stroke-width: 1;
+    stroke-dasharray: 113;
+    stroke-dashoffset: 113;
+    opacity: 0.4;
+    animation: drawStroke 1s ease-out forwards;
+    animation-delay: 0.8s;
+  }
+
+  #loading-text {
+    font-family: var(--font-display);
+    font-size: 20px;
+    color: var(--stormlight);
+    opacity: 0;
+    animation: fadeIn 0.5s ease-out forwards;
+    animation-delay: 1.7s;
+    letter-spacing: 1px;
+  }
+
+  @keyframes drawStroke {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes breathe {
+    0%, 100% { filter: drop-shadow(0 0 8px rgba(200, 223, 255, 0.15)); }
+    50% { filter: drop-shadow(0 0 20px rgba(200, 223, 255, 0.4)); }
+  }
+
+  /* ── Particle canvas ───────────────────────────────────────── */
+  #particles {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(1.5px);
+  }
+
+  /* ── Graph ─────────────────────────────────────────────────── */
   #graph-container {
     position: absolute;
     inset: 0;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.8s ease;
   }
   svg { width: 100%; height: 100%; }
 
-  /* ── Search overlay ─────────────────────────────────────────── */
-  #search-box {
+  /* ── Header ────────────────────────────────────────────────── */
+  #header {
     position: absolute;
-    top: 16px;
-    left: 16px;
+    top: 20px;
+    left: 20px;
     z-index: 10;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.6s ease 0.2s;
   }
+  #title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--stormlight);
+    letter-spacing: 0.5px;
+  }
+  #subtitle {
+    font-size: 11px;
+    color: #556677;
+    margin-top: 2px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  #header-line {
+    height: 1px;
+    margin: 10px 0 14px;
+    width: 280px;
+    background: linear-gradient(
+      to right,
+      var(--gem-sapphire),
+      var(--gem-emerald),
+      var(--gem-amethyst),
+      var(--gem-heliodor),
+      var(--gem-ruby),
+      transparent
+    );
+    opacity: 0.5;
+  }
+
+  /* ── Search ────────────────────────────────────────────────── */
+  #search-box { position: relative; }
   #search-input {
     width: 280px;
     padding: 10px 14px;
-    border: 1px solid #2a3040;
+    border: 1px solid var(--crem);
     border-radius: 8px;
-    background: #12162090;
+    background: rgba(10, 14, 24, 0.7);
     backdrop-filter: blur(12px);
-    color: #e0e0e0;
-    font-size: 15px;
+    color: var(--stormlight);
+    font-size: 14px;
+    font-family: var(--font-body);
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.3s, box-shadow 0.3s;
   }
-  #search-input:focus { border-color: #5b8def; }
-  #search-input::placeholder { color: #556; }
+  #search-input:focus {
+    border-color: var(--gem-sapphire-glow);
+    box-shadow: 0 0 12px rgba(74, 139, 223, 0.15);
+  }
+  #search-input::placeholder { color: #445566; }
   #search-clear {
-    background: none; border: none; color: #667;
-    font-size: 18px; cursor: pointer; padding: 4px 8px;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #556;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
     display: none;
   }
-  #search-clear:hover { color: #e0e0e0; }
+  #search-clear:hover { color: var(--stormlight); }
   #search-suggestions {
     position: absolute;
-    top: 44px; left: 0;
+    top: 44px;
+    left: 0;
     width: 280px;
     max-height: 320px;
     overflow-y: auto;
-    background: #161b28ee;
-    backdrop-filter: blur(12px);
-    border: 1px solid #2a3040;
+    background: rgba(10, 14, 24, 0.92);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--crem);
     border-radius: 8px;
     display: none;
   }
   .suggestion {
     padding: 8px 14px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-  .suggestion:hover, .suggestion.active { background: #1e2538; }
+  .suggestion:hover, .suggestion.active { background: rgba(200, 223, 255, 0.05); }
   .suggestion .tag-type {
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    opacity: 0.8;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
-  /* ── Filter toggles ────────────────────────────────────────── */
+  /* ── Filters ───────────────────────────────────────────────── */
   #filters {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 20px;
+    right: 20px;
     z-index: 10;
     display: flex;
+    align-items: center;
     gap: 6px;
     flex-wrap: wrap;
     justify-content: flex-end;
-    max-width: 500px;
+    max-width: 520px;
+    opacity: 0;
+    transition: opacity 0.6s ease 0.3s;
   }
   .filter-btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid #2a3040;
-    background: #12162090;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--crem);
+    background: rgba(10, 14, 24, 0.6);
     backdrop-filter: blur(12px);
-    color: #e0e0e0;
+    color: var(--stormlight);
     font-size: 12px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s;
     user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 7px;
   }
   .filter-btn.off {
-    opacity: 0.35;
+    opacity: 0.25;
     text-decoration: line-through;
   }
-  .filter-btn:hover { border-color: #5b8def; }
+  .filter-gem {
+    width: 8px;
+    height: 9px;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    flex-shrink: 0;
+  }
 
-  /* ── Side panel ─────────────────────────────────────────────── */
+  /* ── Side panel ────────────────────────────────────────────── */
   #panel {
     position: absolute;
     top: 0; right: 0;
     width: 420px;
     height: 100vh;
-    background: #111622ee;
-    backdrop-filter: blur(16px);
-    border-left: 1px solid #1e2538;
+    background: rgba(10, 14, 24, 0.92);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid var(--crem);
     z-index: 20;
     overflow-y: auto;
     transform: translateX(100%);
-    transition: transform 0.3s ease;
-    padding: 24px;
+    transition: transform 0.35s ease;
+    padding: 28px 24px;
   }
   #panel.open { transform: translateX(0); }
-  #panel-close {
-    position: absolute; top: 16px; right: 16px;
-    background: none; border: none; color: #667;
-    font-size: 22px; cursor: pointer;
+
+  #panel::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--panel-gem-color);
+    box-shadow: 0 0 12px var(--panel-gem-glow), 0 0 25px var(--panel-gem-glow);
+    opacity: 0;
+    transition: opacity 0.3s ease 0.15s;
   }
-  #panel-close:hover { color: #e0e0e0; }
+  #panel.open::before { opacity: 1; }
+
+  #panel-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: #556;
+    font-size: 22px;
+    cursor: pointer;
+    transition: color 0.2s, text-shadow 0.2s;
+    z-index: 1;
+  }
+  #panel-close:hover {
+    color: var(--panel-gem-glow);
+    text-shadow: 0 0 8px var(--panel-gem-glow);
+  }
+
+  #panel-content {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s;
+  }
+  #panel.open #panel-content {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
   #panel h2 {
-    font-size: 22px;
-    margin-bottom: 4px;
-    color: #fff;
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--panel-gem-glow);
   }
-  .panel-type-badge {
+  .gem-badge {
     display: inline-block;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin-bottom: 12px;
+    font-size: 10px;
+    padding: 3px 12px;
+    border-radius: 2px;
+    clip-path: polygon(8% 0%, 92% 0%, 100% 50%, 92% 100%, 8% 100%, 0% 50%);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+    margin-bottom: 8px;
   }
   .panel-entry-count {
     font-size: 13px;
-    color: #889;
-    margin-bottom: 20px;
+    color: rgba(200, 223, 255, 0.4);
+    margin-bottom: 4px;
+  }
+  .browse-all-btn {
+    font-size: 12px;
+    color: var(--panel-gem-glow);
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: var(--font-body);
+    padding: 0;
+    margin-bottom: 18px;
+    display: block;
+    transition: opacity 0.2s;
+  }
+  .browse-all-btn:hover { opacity: 0.7; }
+
+  .panel-divider {
+    height: 1px;
+    margin: 0 0 16px;
+    background: linear-gradient(to right, var(--panel-gem-color), transparent);
+    opacity: 0.3;
   }
 
   .connections-section h3 {
-    font-size: 14px;
-    color: #8899aa;
-    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
     letter-spacing: 0.5px;
-    margin: 16px 0 8px;
+    margin: 18px 0 8px;
     padding-bottom: 4px;
-    border-bottom: 1px solid #1e2538;
+    border-bottom: 1px solid rgba(200, 223, 255, 0.06);
   }
   .connection-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 8px;
-    border-radius: 4px;
+    padding: 7px 10px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
+    transition: background 0.2s;
   }
-  .connection-item:hover { background: #1a2030; }
+  .connection-item:hover {
+    background: rgba(200, 223, 255, 0.04);
+  }
+  .conn-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .conn-gem {
+    width: 6px;
+    height: 7px;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    flex-shrink: 0;
+  }
   .connection-weight {
-    font-size: 12px;
-    color: #667;
-    background: #1a2030;
-    padding: 2px 6px;
-    border-radius: 3px;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
   }
 
-  /* ── WoB entries panel ──────────────────────────────────────── */
+  /* ── Entries ───────────────────────────────────────────────── */
   #entries-section {
     margin-top: 20px;
     display: none;
   }
   #entries-section h3 {
-    font-size: 14px;
-    color: #8899aa;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--stormlight);
     margin-bottom: 12px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid #1e2538;
   }
   .entries-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(200, 223, 255, 0.06);
+    margin-bottom: 12px;
   }
   .entries-back {
     font-size: 12px;
-    color: #5b8def;
+    color: var(--panel-gem-glow);
     cursor: pointer;
     border: none;
     background: none;
+    font-family: var(--font-body);
+    transition: opacity 0.2s;
   }
-  .entries-back:hover { text-decoration: underline; }
+  .entries-back:hover { opacity: 0.7; }
 
   .wob-entry {
-    background: #0d111c;
-    border: 1px solid #1e2538;
+    background: rgba(8, 12, 20, 0.6);
+    border: 1px solid rgba(200, 223, 255, 0.04);
+    border-left: 2px solid var(--panel-gem-color);
     border-radius: 8px;
-    padding: 12px;
+    padding: 14px;
     margin-bottom: 10px;
   }
   .wob-event {
     font-size: 11px;
-    color: #667;
-    margin-bottom: 8px;
+    color: rgba(200, 223, 255, 0.3);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .wob-event-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--panel-gem-glow);
+    flex-shrink: 0;
+    opacity: 0.6;
   }
   .wob-line {
     margin-bottom: 6px;
     font-size: 13px;
-    line-height: 1.6;
+    line-height: 1.65;
   }
   .wob-speaker {
     font-weight: 600;
     margin-right: 4px;
   }
-  .wob-speaker.brandon { color: #7cb3ff; }
-  .wob-speaker.questioner { color: #a0a8b8; }
+  .wob-speaker.brandon { color: var(--stormlight); }
+  .wob-speaker.questioner { color: rgba(200, 223, 255, 0.45); }
   .wob-expand {
     font-size: 12px;
-    color: #5b8def;
+    color: var(--panel-gem-glow);
     cursor: pointer;
     border: none;
     background: none;
+    font-family: var(--font-body);
     margin-top: 4px;
+    transition: opacity 0.2s;
   }
-  .wob-expand:hover { text-decoration: underline; }
-
+  .wob-expand:hover { opacity: 0.7; }
   .wob-tags {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    margin-top: 8px;
+    margin-top: 10px;
   }
   .wob-tag {
     font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 3px;
-    background: #1a2030;
-    color: #889;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(200, 223, 255, 0.04);
+    color: rgba(200, 223, 255, 0.35);
+    border: 1px solid rgba(200, 223, 255, 0.06);
   }
 
-  /* ── Color system ───────────────────────────────────────────── */
-  .type-character { color: #5b9bef; }
-  .type-world { color: #4eca8b; }
-  .type-magic { color: #b07ce8; }
-  .type-shard { color: #e8c44a; }
-  .type-concept { color: #e89040; }
-  .type-book { color: #8899aa; }
+  /* ── Tooltip ───────────────────────────────────────────────── */
+  #tooltip {
+    position: absolute;
+    z-index: 30;
+    background: rgba(10, 14, 24, 0.92);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--crem);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    pointer-events: none;
+    display: none;
+    max-width: 260px;
+  }
+  #tooltip .tt-name { font-weight: 600; }
+  #tooltip .tt-meta {
+    font-size: 11px;
+    color: rgba(200, 223, 255, 0.4);
+    margin-top: 2px;
+  }
 
-  .bg-character { background: #1a2a45; }
-  .bg-world { background: #143028; }
-  .bg-magic { background: #2a1a3d; }
-  .bg-shard { background: #3a3018; }
-  .bg-concept { background: #3a2418; }
-  .bg-book { background: #1e2530; }
-
-  /* ── Info overlay ───────────────────────────────────────────── */
+  /* ── Info bar ──────────────────────────────────────────────── */
   #info {
     position: absolute;
     bottom: 16px;
     left: 16px;
     z-index: 10;
     font-size: 12px;
-    color: #445;
-    background: #12162090;
+    color: #334455;
+    background: rgba(10, 14, 24, 0.6);
     backdrop-filter: blur(12px);
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #1e2538;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(200, 223, 255, 0.04);
+    opacity: 0;
+    transition: opacity 0.6s ease 0.4s;
   }
-  #info a { color: #5577aa; }
-
-  /* ── Tooltip ────────────────────────────────────────────────── */
-  #tooltip {
-    position: absolute;
-    z-index: 30;
-    background: #1a2030ee;
-    border: 1px solid #2a3545;
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 13px;
-    pointer-events: none;
-    display: none;
-    max-width: 250px;
+  #info .info-title {
+    font-family: var(--font-display);
+    color: rgba(200, 223, 255, 0.3);
   }
-  #tooltip .tt-name { font-weight: 600; }
-  #tooltip .tt-count { color: #889; font-size: 12px; }
+  #info a {
+    color: rgba(200, 223, 255, 0.4);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(200, 223, 255, 0.15);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  #info a:hover {
+    color: var(--stormlight);
+    border-bottom-color: var(--stormlight);
+  }
 
-  /* ── Loading ────────────────────────────────────────────────── */
-  #loading {
+  /* ── Scrollbar ─────────────────────────────────────────────── */
+  #panel::-webkit-scrollbar { width: 6px; }
+  #panel::-webkit-scrollbar-track { background: transparent; }
+  #panel::-webkit-scrollbar-thumb {
+    background: rgba(200, 223, 255, 0.1);
+    border-radius: 3px;
+  }
+  #panel::-webkit-scrollbar-thumb:hover { background: rgba(200, 223, 255, 0.2); }
+
+  /* ── Embedding Controls Bar ──────────────────────────────── */
+  #embedding-controls-bar {
     position: absolute;
-    inset: 0;
+    bottom: 56px;
+    left: 16px;
+    z-index: 10;
     display: flex;
     align-items: center;
-    justify-content: center;
-    background: #0a0e17;
-    z-index: 100;
-    flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+    background: rgba(10, 14, 24, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--crem);
+    border-radius: 10px;
+    padding: 8px 14px;
+    opacity: 0;
+    transition: opacity 0.6s ease 0.5s;
   }
-  #loading .spinner {
-    width: 32px; height: 32px;
-    border: 3px solid #1e2538;
-    border-top: 3px solid #5b8def;
+
+  #embedding-controls-bar .bar-label {
+    font-family: var(--font-display);
+    font-size: 13px;
+    color: var(--gem-heliodor-glow);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  #tuning-toggle-btn {
+    background: none;
+    border: 1px solid var(--crem);
+    border-radius: 6px;
+    color: var(--stormlight);
+    font-size: 12px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+    white-space: nowrap;
+  }
+  #tuning-toggle-btn:hover {
+    border-color: var(--gem-heliodor);
+    color: var(--gem-heliodor-glow);
+    background: rgba(232, 196, 74, 0.06);
+  }
+
+  #apply-embeddings-btn {
+    background: linear-gradient(135deg, var(--gem-heliodor), #9a7a1a);
+    border: none;
+    border-radius: 6px;
+    color: #0a0c14;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 18px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    letter-spacing: 0.5px;
+    transition: opacity 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+  }
+  #apply-embeddings-btn:hover {
+    box-shadow: 0 0 12px rgba(232, 196, 74, 0.3);
+  }
+  #apply-embeddings-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  #embedding-stats {
+    font-size: 11px;
+    color: rgba(200, 223, 255, 0.45);
+    white-space: nowrap;
+  }
+
+  /* ── Tuning Panel (collapsible) ──────────────────────────── */
+  #tuning-panel {
+    position: absolute;
+    bottom: 104px;
+    left: 16px;
+    z-index: 10;
+    background: rgba(10, 14, 24, 0.92);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--crem);
+    border-radius: 10px;
+    padding: 18px 20px;
+    width: 340px;
+    display: none;
+  }
+  #tuning-panel.open {
+    display: block;
+  }
+
+  #tuning-panel h3 {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gem-heliodor-glow);
+    margin-bottom: 14px;
+    letter-spacing: 0.3px;
+  }
+
+  .tuning-row {
+    margin-bottom: 14px;
+  }
+  .tuning-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .tuning-row label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: rgba(200, 223, 255, 0.7);
+    margin-bottom: 5px;
+  }
+
+  .tuning-row .slider-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gem-heliodor-glow);
+    min-width: 32px;
+    text-align: right;
+  }
+
+  .tuning-row input[type="range"] {
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--crem);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  .tuning-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    background: var(--gem-heliodor);
+    box-shadow: 0 0 6px rgba(232, 196, 74, 0.4);
+    cursor: pointer;
+    border: 2px solid var(--gem-heliodor-glow);
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .tuning-row input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--gem-heliodor);
+    box-shadow: 0 0 6px rgba(232, 196, 74, 0.4);
+    cursor: pointer;
+    border: 2px solid var(--gem-heliodor-glow);
+  }
+
+  .tuning-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .tuning-checkbox-row input[type="checkbox"] {
+    accent-color: var(--gem-heliodor);
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+  }
+  .tuning-checkbox-row label {
+    font-size: 12px;
+    color: rgba(200, 223, 255, 0.7);
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
 
+<!-- ── Loading Screen ────────────────────────────────────────── -->
 <div id="loading">
-  <div class="spinner"></div>
-  <div style="color: #667; font-size: 14px;">Loading Cosmere knowledge graph...</div>
+  <svg id="glyph" viewBox="-100 -100 200 200" width="150" height="150">
+    <circle class="glyph-ring" cx="0" cy="0" r="40"/>
+    <circle class="glyph-inner" cx="0" cy="0" r="18"/>
+    <path class="glyph-ray" d="M46,0 L70,0" style="animation-delay:1.0s"/>
+    <path class="glyph-ray" d="M32.5,32.5 L49.5,49.5" style="animation-delay:1.05s"/>
+    <path class="glyph-ray" d="M0,46 L0,70" style="animation-delay:1.1s"/>
+    <path class="glyph-ray" d="M-32.5,32.5 L-49.5,49.5" style="animation-delay:1.15s"/>
+    <path class="glyph-ray" d="M-46,0 L-70,0" style="animation-delay:1.2s"/>
+    <path class="glyph-ray" d="M-32.5,-32.5 L-49.5,-49.5" style="animation-delay:1.25s"/>
+    <path class="glyph-ray" d="M0,-46 L0,-70" style="animation-delay:1.3s"/>
+    <path class="glyph-ray" d="M32.5,-32.5 L49.5,-49.5" style="animation-delay:1.35s"/>
+    <circle class="glyph-dot" cx="76" cy="0" r="3" style="animation-delay:1.45s"/>
+    <circle class="glyph-dot" cx="53.7" cy="53.7" r="3" style="animation-delay:1.5s"/>
+    <circle class="glyph-dot" cx="0" cy="76" r="3" style="animation-delay:1.55s"/>
+    <circle class="glyph-dot" cx="-53.7" cy="53.7" r="3" style="animation-delay:1.6s"/>
+    <circle class="glyph-dot" cx="-76" cy="0" r="3" style="animation-delay:1.65s"/>
+    <circle class="glyph-dot" cx="-53.7" cy="-53.7" r="3" style="animation-delay:1.7s"/>
+    <circle class="glyph-dot" cx="0" cy="-76" r="3" style="animation-delay:1.75s"/>
+    <circle class="glyph-dot" cx="53.7" cy="-53.7" r="3" style="animation-delay:1.8s"/>
+  </svg>
+  <div id="loading-text">Connecting the Cosmere...</div>
 </div>
 
+<!-- ── Stormlight Particles ──────────────────────────────────── -->
+<canvas id="particles"></canvas>
+
+<!-- ── Graph ─────────────────────────────────────────────────── -->
 <div id="graph-container">
   <svg id="graph-svg"></svg>
 </div>
 
-<div id="search-box">
-  <input type="text" id="search-input" placeholder="Search characters, worlds, magic...">
-  <button id="search-clear">&times;</button>
-  <div id="search-suggestions"></div>
+<!-- ── Header ────────────────────────────────────────────────── -->
+<div id="header">
+  <h1 id="title">Cosmere Knowledge Graph</h1>
+  <div id="subtitle">Words of Brandon</div>
+  <div id="header-line"></div>
+  <div id="search-box">
+    <input type="text" id="search-input" placeholder='Search entities... ( / )'>
+    <button id="search-clear">&times;</button>
+    <div id="search-suggestions"></div>
+  </div>
 </div>
 
+<!-- ── Filters ───────────────────────────────────────────────── -->
 <div id="filters"></div>
 
+<!-- ── Embedding Controls ────────────────────────────────────── -->
+<div id="embedding-controls-bar">
+  <span class="bar-label">Embeddings</span>
+  <button id="tuning-toggle-btn">Tune</button>
+  <button id="apply-embeddings-btn">Apply</button>
+  <span id="embedding-stats">Ready to compute</span>
+</div>
+
+<div id="tuning-panel">
+  <h3>Embedding Tuning</h3>
+
+  <div class="tuning-row">
+    <label>
+      <span>Calibration Percentile</span>
+      <span class="slider-value" id="value-calibration-percentile">25</span>
+    </label>
+    <input type="range" id="slider-calibration-percentile"
+           min="10" max="50" step="5" value="25">
+  </div>
+
+  <div class="tuning-row">
+    <label>
+      <span>Min Specificity</span>
+      <span class="slider-value" id="value-min-specificity">2.0</span>
+    </label>
+    <input type="range" id="slider-min-specificity"
+           min="0" max="5" step="0.1" value="2">
+  </div>
+
+  <div class="tuning-row">
+    <label>
+      <span>Confidence Margin</span>
+      <span class="slider-value" id="value-confidence-margin">0.05</span>
+    </label>
+    <input type="range" id="slider-confidence-margin"
+           min="0" max="0.15" step="0.01" value="0.05">
+  </div>
+
+  <div class="tuning-row">
+    <label>
+      <span>Min Edge Weight</span>
+      <span class="slider-value" id="value-min-edge-weight">2</span>
+    </label>
+    <input type="range" id="slider-min-edge-weight"
+           min="2" max="10" step="1" value="2">
+  </div>
+
+  <div class="tuning-checkbox-row">
+    <input type="checkbox" id="checkbox-must-bridge" checked>
+    <label for="checkbox-must-bridge">Must-Bridge (remove orphan tags)</label>
+  </div>
+</div>
+
+<!-- ── Side Panel ────────────────────────────────────────────── -->
 <div id="panel">
   <button id="panel-close">&times;</button>
   <div id="panel-content"></div>
 </div>
 
+<!-- ── Tooltip ───────────────────────────────────────────────── -->
 <div id="tooltip"></div>
 
+<!-- ── Info ───────────────────────────────────────────────────── -->
 <div id="info">
-  Cosmere Knowledge Graph &middot; <span id="node-count"></span> entities &middot; <span id="edge-count"></span> connections
-  &middot; Data from <a href="https://wob.coppermind.net/" target="_blank">Arcanum</a>
+  <span class="info-title">Cosmere Knowledge Graph</span> &middot;
+  <span id="node-count"></span> entities &middot;
+  <span id="edge-count"></span> connections &middot;
+  Data from <a href="https://wob.coppermind.net/" target="_blank">Arcanum</a>
 </div>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="js/tagging-engine.js"></script>
 <script>
-// ── Constants ────────────────────────────────────────────────────────────────
+// ── Gemstone Constants ──────────────────────────────────────────────────────
 
-const TYPE_COLORS = {
-  character: '#5b9bef',
-  world:     '#4eca8b',
-  magic:     '#b07ce8',
-  shard:     '#e8c44a',
-  concept:   '#e89040',
-  book:      '#8899aa',
+const GEM_COLORS = {
+  character: '#2E5BA8',
+  world:     '#2D8B57',
+  magic:     '#7B4BAA',
+  shard:     '#C49A2A',
+  concept:   '#B03A3A',
+};
+
+const GEM_GLOW = {
+  character: '#4A8BDF',
+  world:     '#3FBF7F',
+  magic:     '#A66ED8',
+  shard:     '#E8C44A',
+  concept:   '#D45A5A',
+};
+
+const GEM_HIGHLIGHT = {
+  character: '#6AADFF',
+  world:     '#5FE8A0',
+  magic:     '#C490F0',
+  shard:     '#F0D870',
+  concept:   '#E87070',
+};
+
+const GEM_NAMES = {
+  character: 'Sapphire',
+  world:     'Emerald',
+  magic:     'Amethyst',
+  shard:     'Heliodor',
+  concept:   'Ruby',
 };
 
 const TYPE_LABELS = {
@@ -372,94 +918,210 @@ const TYPE_LABELS = {
   magic:     'Magic Systems',
   shard:     'Shards',
   concept:   'Concepts',
-  book:      'Books',
 };
 
-// ── State ────────────────────────────────────────────────────────────────────
+// ── Stormlight Particle System ──────────────────────────────────────────────
+
+class StormParticles {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.particles = [];
+    this.running = true;
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+    document.addEventListener('visibilitychange', () => {
+      this.running = !document.hidden;
+      if (this.running) this.loop();
+    });
+  }
+
+  resize() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+  }
+
+  init(count) {
+    this.particles = [];
+    for (let i = 0; i < count; i++) {
+      this.particles.push(this.spawn(true));
+    }
+    this.loop();
+  }
+
+  spawn(randomY) {
+    const layer = Math.random() > 0.5 ? 0 : 1;
+    return {
+      x: Math.random() * this.canvas.width,
+      y: randomY ? Math.random() * this.canvas.height : this.canvas.height + 20,
+      vy: -(0.12 + Math.random() * 0.28) * (layer === 0 ? 0.5 : 1),
+      wobbleSpeed: 0.0008 + Math.random() * 0.002,
+      wobbleAmp: 12 + Math.random() * 25,
+      phase: Math.random() * Math.PI * 2,
+      size: layer === 0 ? (2.5 + Math.random() * 3) : (1 + Math.random() * 2),
+      opacity: layer === 0 ? (0.035 + Math.random() * 0.05) : (0.05 + Math.random() * 0.09),
+      time: Math.random() * 10000,
+    };
+  }
+
+  loop() {
+    if (!this.running) return;
+    const { ctx, canvas, particles } = this;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const p of particles) {
+      p.time += 1;
+      p.y += p.vy;
+      const wx = Math.sin(p.time * p.wobbleSpeed + p.phase) * p.wobbleAmp;
+      if (p.y < -30) {
+        p.y = canvas.height + 30;
+        p.x = Math.random() * canvas.width;
+        p.phase = Math.random() * Math.PI * 2;
+      }
+      ctx.beginPath();
+      ctx.arc(p.x + wx, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(200,223,255,' + p.opacity + ')';
+      ctx.fill();
+    }
+    requestAnimationFrame(() => this.loop());
+  }
+}
+
+// ── Gemstone Path Generator ─────────────────────────────────────────────────
+
+function gemPath(r, facets) {
+  const n = facets || 6;
+  const offset = -Math.PI / 2;
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = (2 * Math.PI / n) * i + offset;
+    pts.push((r * Math.cos(a)).toFixed(2) + ',' + (r * Math.sin(a)).toFixed(2));
+  }
+  return 'M' + pts.join('L') + 'Z';
+}
+
+// ── State ───────────────────────────────────────────────────────────────────
 
 let graph, entries;
+var similarity = {};
 let simulation;
 let focusedNode = null;
-let activeFilters = new Set(Object.keys(TYPE_COLORS));
-let selectedConnection = null;
+let activeFilters = new Set(Object.keys(GEM_COLORS));
 
-// ── Load data ────────────────────────────────────────────────────────────────
+// ── Init ────────────────────────────────────────────────────────────────────
 
 async function init() {
+  const startTime = Date.now();
+
+  // Start particles immediately
+  const storm = new StormParticles(document.getElementById('particles'));
+  storm.init(70);
+
+  // Load data
   const basePath = window.location.pathname.replace(/\/[^\/]*$/, '');
-  const [graphResp, entriesResp] = await Promise.all([
-    fetch(`${basePath}/data/graph.json`).then(r => r.json()),
-    fetch(`${basePath}/data/entries.json`).then(r => r.json()),
+  const [graphResp, entriesResp, similarityResp] = await Promise.all([
+    fetch(basePath + '/data/graph.json').then(function(r) { return r.json(); }),
+    fetch(basePath + '/data/entries.json').then(function(r) { return r.json(); }),
+    fetch(basePath + '/data/similarity.json').then(function(r) { return r.json(); }).catch(function() { return {}; }),
   ]);
   graph = graphResp;
   entries = entriesResp;
+  similarity = similarityResp;
 
-  // Filter out book nodes and their edges for cleaner graph
-  // (books create noisy connections — everything connects to "stormlight archive")
-  graph.nodes = graph.nodes.filter(n => n.type !== 'book');
-  const nodeIds = new Set(graph.nodes.map(n => n.id));
-  graph.edges = graph.edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
-  // Also remove "book" from filters since we filtered them
-  delete TYPE_COLORS.book;
-  delete TYPE_LABELS.book;
-  activeFilters.delete('book');
+  // Filter book nodes
+  graph.nodes = graph.nodes.filter(function(n) { return n.type !== 'book'; });
+  var nodeIds = new Set(graph.nodes.map(function(n) { return n.id; }));
+  graph.edges = graph.edges.filter(function(e) { return nodeIds.has(e.source) && nodeIds.has(e.target); });
 
   document.getElementById('node-count').textContent = graph.nodes.length;
   document.getElementById('edge-count').textContent = graph.edges.length;
-  document.getElementById('loading').style.display = 'none';
 
+  // Build graph while loading screen is visible
   buildGraph();
   buildFilters();
   setupSearch();
   setupPanel();
+  buildExplicitTagsByEntry();
+  buildBaselineConnected();
+  setupEmbeddingControls();
+
+  // Ensure minimum 2.2s loading for animation
+  const elapsed = Date.now() - startTime;
+  if (elapsed < 2200) {
+    await new Promise(function(r) { return setTimeout(r, 2200 - elapsed); });
+  }
+
+  // Transition out
+  var loading = document.getElementById('loading');
+  loading.classList.add('fade-out');
+  await new Promise(function(r) { return setTimeout(r, 600); });
+  loading.style.display = 'none';
+
+  // Fade in graph and UI
+  document.getElementById('graph-container').style.opacity = '1';
+  document.getElementById('header').style.opacity = '1';
+  document.getElementById('filters').style.opacity = '1';
+  document.getElementById('info').style.opacity = '1';
+  document.getElementById('embedding-controls-bar').style.opacity = '1';
 }
 
-// ── Graph ────────────────────────────────────────────────────────────────────
+// ── Build Graph ─────────────────────────────────────────────────────────────
 
 function buildGraph() {
-  const svg = d3.select('#graph-svg');
-  const width = window.innerWidth;
-  const height = window.innerHeight;
+  var svg = d3.select('#graph-svg');
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+  var defs = svg.append('defs');
 
-  // Size scale: sqrt of entry count, clamped
-  const sizeScale = d3.scaleSqrt()
-    .domain([1, d3.max(graph.nodes, d => d.entryCount)])
-    .range([3, 22]);
+  // Soft blur filter for glow circles
+  var blurFilter = defs.append('filter')
+    .attr('id', 'soft-blur')
+    .attr('x', '-100%').attr('y', '-100%')
+    .attr('width', '300%').attr('height', '300%');
+  blurFilter.append('feGaussianBlur')
+    .attr('stdDeviation', '5');
 
-  // Edge width scale
-  const edgeScale = d3.scaleLinear()
-    .domain([2, d3.max(graph.edges, d => d.weight)])
-    .range([0.3, 3]);
-
-  // Zoom behavior
-  const zoom = d3.zoom()
-    .scaleExtent([0.1, 8])
-    .on('zoom', (event) => {
-      container.attr('transform', event.transform);
-    });
-  svg.call(zoom);
-
-  // Click background to unfocus
-  svg.on('click', (event) => {
-    if (event.target === svg.node()) {
-      unfocus();
-    }
+  // Radial gradients for gemstone fills
+  Object.keys(GEM_COLORS).forEach(function(type) {
+    var grad = defs.append('radialGradient')
+      .attr('id', 'gem-fill-' + type)
+      .attr('cx', '35%').attr('cy', '30%').attr('r', '65%');
+    grad.append('stop').attr('offset', '0%').attr('stop-color', GEM_HIGHLIGHT[type]);
+    grad.append('stop').attr('offset', '100%').attr('stop-color', GEM_COLORS[type]);
   });
 
-  const container = svg.append('g');
+  // Scales
+  var sizeScale = d3.scaleSqrt()
+    .domain([1, d3.max(graph.nodes, function(d) { return d.entryCount; })])
+    .range([4, 24]);
+
+  var edgeScale = d3.scaleLinear()
+    .domain([2, d3.max(graph.edges, function(d) { return d.weight; })])
+    .range([0.3, 2.5]);
+
+  // Zoom
+  var zoom = d3.zoom()
+    .scaleExtent([0.1, 8])
+    .on('zoom', function(event) { container.attr('transform', event.transform); });
+  svg.call(zoom);
+  svg.on('click', function(event) {
+    if (event.target === svg.node()) unfocus();
+  });
+
+  var container = svg.append('g');
 
   // Edges
-  const linkGroup = container.append('g').attr('class', 'links');
-  const links = linkGroup.selectAll('line')
+  var linkGroup = container.append('g').attr('class', 'links');
+  var links = linkGroup.selectAll('line')
     .data(graph.edges)
     .join('line')
-    .attr('stroke', '#1e2538')
-    .attr('stroke-width', d => edgeScale(d.weight))
-    .attr('stroke-opacity', 0.4);
+    .attr('stroke', 'rgba(200,223,255,0.06)')
+    .attr('stroke-width', function(d) { return edgeScale(d.weight); })
+    .attr('stroke-opacity', 1);
 
   // Nodes
-  const nodeGroup = container.append('g').attr('class', 'nodes');
-  const nodes = nodeGroup.selectAll('g')
+  var nodeGroup = container.append('g').attr('class', 'nodes');
+  var nodes = nodeGroup.selectAll('g')
     .data(graph.nodes)
     .join('g')
     .attr('cursor', 'pointer')
@@ -468,59 +1130,82 @@ function buildGraph() {
       .on('drag', dragging)
       .on('end', dragEnd));
 
+  // Glow circle (behind gemstone)
   nodes.append('circle')
-    .attr('r', d => sizeScale(d.entryCount))
-    .attr('fill', d => TYPE_COLORS[d.type])
-    .attr('fill-opacity', 0.8)
-    .attr('stroke', d => TYPE_COLORS[d.type])
-    .attr('stroke-width', 1)
-    .attr('stroke-opacity', 0.3);
-
-  // Labels for larger nodes
-  nodes.filter(d => d.entryCount >= 30)
-    .append('text')
-    .text(d => d.label)
-    .attr('text-anchor', 'middle')
-    .attr('dy', d => sizeScale(d.entryCount) + 12)
-    .attr('font-size', d => Math.min(11, 7 + d.entryCount / 50))
-    .attr('fill', '#8899aa')
+    .attr('class', 'gem-glow')
+    .attr('r', function(d) { return sizeScale(d.entryCount) * 1.8; })
+    .attr('fill', function(d) { return GEM_GLOW[d.type]; })
+    .attr('fill-opacity', 0.1)
+    .attr('filter', 'url(#soft-blur)')
     .attr('pointer-events', 'none');
 
+  // Gemstone node
+  nodes.append('path')
+    .attr('class', 'gem-node')
+    .attr('d', function(d) { return gemPath(sizeScale(d.entryCount), d.entryCount > 80 ? 8 : 6); })
+    .attr('fill', function(d) { return 'url(#gem-fill-' + d.type + ')'; })
+    .attr('fill-opacity', 0.85)
+    .attr('stroke', function(d) { return GEM_GLOW[d.type]; })
+    .attr('stroke-width', 0.8)
+    .attr('stroke-opacity', 0.3);
+
+  // Labels
+  nodes.filter(function(d) { return d.entryCount >= 30; })
+    .append('text')
+    .attr('class', 'gem-label')
+    .text(function(d) { return d.label; })
+    .attr('text-anchor', 'middle')
+    .attr('dy', function(d) { return sizeScale(d.entryCount) + 14; })
+    .attr('font-size', function(d) { return Math.min(11, 7 + d.entryCount / 50); })
+    .attr('fill', '#C8DFFF')
+    .attr('fill-opacity', 0.75)
+    .attr('pointer-events', 'none')
+    .attr('font-family', 'system-ui, sans-serif');
+
   // Tooltip
-  const tooltip = d3.select('#tooltip');
-  nodes.on('mouseenter', (event, d) => {
-    tooltip.style('display', 'block')
-      .html(`<span class="tt-name type-${d.type}">${d.label}</span><br>
-             <span class="tt-count">${d.type} &middot; ${d.entryCount} entries</span>`);
+  var tooltip = d3.select('#tooltip');
+  nodes.on('mouseenter', function(event, d) {
+    var nameEl = document.createElement('div');
+    nameEl.className = 'tt-name';
+    nameEl.style.color = GEM_GLOW[d.type];
+    nameEl.textContent = d.label;
+
+    var metaEl = document.createElement('div');
+    metaEl.className = 'tt-meta';
+    metaEl.textContent = GEM_NAMES[d.type] + ' \u00B7 ' + d.entryCount + ' entries';
+
+    var container = tooltip.node();
+    container.textContent = '';
+    container.appendChild(nameEl);
+    container.appendChild(metaEl);
+    tooltip.style('display', 'block');
   })
-  .on('mousemove', (event) => {
-    tooltip.style('left', (event.clientX + 12) + 'px')
+  .on('mousemove', function(event) {
+    tooltip.style('left', (event.clientX + 14) + 'px')
       .style('top', (event.clientY - 10) + 'px');
   })
-  .on('mouseleave', () => tooltip.style('display', 'none'));
+  .on('mouseleave', function() { tooltip.style('display', 'none'); });
 
   // Click to focus
-  nodes.on('click', (event, d) => {
+  nodes.on('click', function(event, d) {
     event.stopPropagation();
     focusNode(d.id);
   });
 
   // Simulation
   simulation = d3.forceSimulation(graph.nodes)
-    .force('link', d3.forceLink(graph.edges).id(d => d.id).distance(80).strength(d => Math.min(0.3, d.weight / 50)))
+    .force('link', d3.forceLink(graph.edges).id(function(d) { return d.id; }).distance(80).strength(function(d) { return Math.min(0.3, d.weight / 50); }))
     .force('charge', d3.forceManyBody().strength(-120).distanceMax(400))
     .force('center', d3.forceCenter(width / 2, height / 2))
-    .force('collision', d3.forceCollide().radius(d => sizeScale(d.entryCount) + 4))
-    .on('tick', () => {
+    .force('collision', d3.forceCollide().radius(function(d) { return sizeScale(d.entryCount) + 4; }))
+    .on('tick', function() {
       links
-        .attr('x1', d => d.source.x)
-        .attr('y1', d => d.source.y)
-        .attr('x2', d => d.target.x)
-        .attr('y2', d => d.target.y);
-      nodes.attr('transform', d => `translate(${d.x},${d.y})`);
+        .attr('x1', function(d) { return d.source.x; }).attr('y1', function(d) { return d.source.y; })
+        .attr('x2', function(d) { return d.target.x; }).attr('y2', function(d) { return d.target.y; });
+      nodes.attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; });
     });
 
-  // Store references for focus/filter
+  // Store refs
   window._nodes = nodes;
   window._links = links;
   window._sizeScale = sizeScale;
@@ -528,7 +1213,6 @@ function buildGraph() {
   window._svg = svg;
   window._container = container;
 
-  // Drag handlers
   function dragStart(event, d) {
     if (!event.active) simulation.alphaTarget(0.3).restart();
     d.fx = d.x; d.fy = d.y;
@@ -540,74 +1224,127 @@ function buildGraph() {
   }
 }
 
-// ── Focus / Unfocus ──────────────────────────────────────────────────────────
+// ── Focus / Unfocus ─────────────────────────────────────────────────────────
 
 function getNeighbors(nodeId) {
-  const neighbors = new Set();
-  const edgeData = [];
-  graph.edges.forEach(e => {
-    const src = typeof e.source === 'object' ? e.source.id : e.source;
-    const tgt = typeof e.target === 'object' ? e.target.id : e.target;
+  var neighbors = new Set();
+  var edgeData = [];
+  graph.edges.forEach(function(e) {
+    var src = typeof e.source === 'object' ? e.source.id : e.source;
+    var tgt = typeof e.target === 'object' ? e.target.id : e.target;
     if (src === nodeId) { neighbors.add(tgt); edgeData.push(e); }
     if (tgt === nodeId) { neighbors.add(src); edgeData.push(e); }
   });
-  return { neighbors, edgeData };
+  return { neighbors: neighbors, edgeData: edgeData };
 }
 
 function focusNode(nodeId) {
   focusedNode = nodeId;
-  selectedConnection = null;
+  var result = getNeighbors(nodeId);
+  var neighbors = result.neighbors;
+  var edgeData = result.edgeData;
+  var node = graph.nodes.find(function(n) { return n.id === nodeId; });
+  var focusGlow = GEM_GLOW[node.type];
 
-  const { neighbors, edgeData } = getNeighbors(nodeId);
-  const node = graph.nodes.find(n => n.id === nodeId);
-
-  // Dim non-neighbors
-  window._nodes.select('circle')
-    .attr('fill-opacity', d => (d.id === nodeId || neighbors.has(d.id)) ? 0.9 : 0.05)
-    .attr('stroke-opacity', d => (d.id === nodeId || neighbors.has(d.id)) ? 0.5 : 0.02);
-  window._nodes.select('text')
-    .attr('fill-opacity', d => (d.id === nodeId || neighbors.has(d.id)) ? 1 : 0.05);
-
-  window._links
-    .attr('stroke-opacity', d => {
-      const src = typeof d.source === 'object' ? d.source.id : d.source;
-      const tgt = typeof d.target === 'object' ? d.target.id : d.target;
-      return (src === nodeId || tgt === nodeId) ? 0.6 : 0.02;
+  // Gemstone nodes
+  window._nodes.select('.gem-node')
+    .transition().duration(300)
+    .attr('fill-opacity', function(d) {
+      if (d.id === nodeId) return 1;
+      if (neighbors.has(d.id)) return 0.85;
+      return 0.04;
     })
-    .attr('stroke', d => {
-      const src = typeof d.source === 'object' ? d.source.id : d.source;
-      const tgt = typeof d.target === 'object' ? d.target.id : d.target;
-      return (src === nodeId || tgt === nodeId) ? '#3a5080' : '#1e2538';
+    .attr('stroke-opacity', function(d) {
+      if (d.id === nodeId) return 0.8;
+      if (neighbors.has(d.id)) return 0.4;
+      return 0.02;
+    })
+    .attr('transform', function(d) { return d.id === nodeId ? 'scale(1.3)' : 'scale(1)'; });
+
+  // Glow circles
+  window._nodes.select('.gem-glow')
+    .transition().duration(300)
+    .attr('fill-opacity', function(d) {
+      if (d.id === nodeId) return 0.3;
+      if (neighbors.has(d.id)) return 0.15;
+      return 0.01;
+    })
+    .attr('r', function(d) {
+      var base = window._sizeScale(d.entryCount) * 1.8;
+      return d.id === nodeId ? base * 1.6 : base;
     });
 
-  // Center on the node
+  // Labels
+  window._nodes.select('.gem-label')
+    .transition().duration(300)
+    .attr('fill-opacity', function(d) { return (d.id === nodeId || neighbors.has(d.id)) ? 0.9 : 0.03; });
+
+  // Edges
+  window._links
+    .attr('stroke', function(d) {
+      var src = typeof d.source === 'object' ? d.source.id : d.source;
+      var tgt = typeof d.target === 'object' ? d.target.id : d.target;
+      return (src === nodeId || tgt === nodeId) ? focusGlow : 'rgba(200,223,255,0.03)';
+    });
+
+  // Pulse connected edges
+  window._links.filter(function(d) {
+    var src = typeof d.source === 'object' ? d.source.id : d.source;
+    var tgt = typeof d.target === 'object' ? d.target.id : d.target;
+    return src === nodeId || tgt === nodeId;
+  })
+    .attr('stroke-opacity', 0.1)
+    .transition().duration(350)
+    .attr('stroke-opacity', 0.65)
+    .transition().duration(500)
+    .attr('stroke-opacity', 0.4);
+
+  // Dim unconnected edges
+  window._links.filter(function(d) {
+    var src = typeof d.source === 'object' ? d.source.id : d.source;
+    var tgt = typeof d.target === 'object' ? d.target.id : d.target;
+    return src !== nodeId && tgt !== nodeId;
+  })
+    .transition().duration(300)
+    .attr('stroke-opacity', 0.3);
+
+  // Center camera
   if (node && typeof node.x === 'number') {
-    const transform = d3.zoomIdentity
+    var transform = d3.zoomIdentity
       .translate(window.innerWidth / 2, window.innerHeight / 2)
       .scale(1.5)
       .translate(-node.x, -node.y);
     window._svg.transition().duration(750).call(window._zoom.transform, transform);
   }
 
-  // Open panel
   showPanel(nodeId, edgeData);
 }
 
 function unfocus() {
   focusedNode = null;
-  selectedConnection = null;
 
-  window._nodes.select('circle')
-    .attr('fill-opacity', d => activeFilters.has(d.type) ? 0.8 : 0.05)
-    .attr('stroke-opacity', d => activeFilters.has(d.type) ? 0.3 : 0.02);
-  window._nodes.select('text')
-    .attr('fill-opacity', d => activeFilters.has(d.type) ? 1 : 0.05);
+  window._nodes.select('.gem-node')
+    .transition().duration(300)
+    .attr('fill-opacity', function(d) { return activeFilters.has(d.type) ? 0.85 : 0.04; })
+    .attr('stroke-opacity', function(d) { return activeFilters.has(d.type) ? 0.3 : 0.02; })
+    .attr('transform', 'scale(1)');
 
-  window._links.attr('stroke-opacity', 0.4).attr('stroke', '#1e2538');
+  window._nodes.select('.gem-glow')
+    .transition().duration(300)
+    .attr('fill-opacity', function(d) { return activeFilters.has(d.type) ? 0.1 : 0.01; })
+    .attr('r', function(d) { return window._sizeScale(d.entryCount) * 1.8; });
+
+  window._nodes.select('.gem-label')
+    .transition().duration(300)
+    .attr('fill-opacity', function(d) { return activeFilters.has(d.type) ? 0.75 : 0.03; });
+
+  window._links
+    .transition().duration(300)
+    .attr('stroke', 'rgba(200,223,255,0.06)')
+    .attr('stroke-opacity', 1);
 
   closePanel();
 
-  // Reset zoom
   window._svg.transition().duration(500)
     .call(window._zoom.transform, d3.zoomIdentity
       .translate(window.innerWidth / 2, window.innerHeight / 2)
@@ -615,165 +1352,434 @@ function unfocus() {
       .translate(-window.innerWidth / 2, -window.innerHeight / 2));
 }
 
-// ── Panel ────────────────────────────────────────────────────────────────────
+// ── Panel ───────────────────────────────────────────────────────────────────
 
 function setupPanel() {
-  document.getElementById('panel-close').addEventListener('click', () => {
-    unfocus();
-  });
+  document.getElementById('panel-close').addEventListener('click', function() { unfocus(); });
 }
 
 function showPanel(nodeId, edgeData) {
-  const node = graph.nodes.find(n => n.id === nodeId);
-  const panel = document.getElementById('panel');
-  const content = document.getElementById('panel-content');
+  var node = graph.nodes.find(function(n) { return n.id === nodeId; });
+  var panel = document.getElementById('panel');
+  var content = document.getElementById('panel-content');
+
+  // Set panel gem color
+  panel.style.setProperty('--panel-gem-color', GEM_COLORS[node.type]);
+  panel.style.setProperty('--panel-gem-glow', GEM_GLOW[node.type]);
 
   // Group connections by type
-  const connectionsByType = {};
-  edgeData.forEach(e => {
-    const src = typeof e.source === 'object' ? e.source.id : e.source;
-    const tgt = typeof e.target === 'object' ? e.target.id : e.target;
-    const otherId = src === nodeId ? tgt : src;
-    const other = graph.nodes.find(n => n.id === otherId);
-    if (!other) return;
-    if (!activeFilters.has(other.type)) return;
+  var connectionsByType = {};
+  edgeData.forEach(function(e) {
+    var src = typeof e.source === 'object' ? e.source.id : e.source;
+    var tgt = typeof e.target === 'object' ? e.target.id : e.target;
+    var otherId = src === nodeId ? tgt : src;
+    var other = graph.nodes.find(function(n) { return n.id === otherId; });
+    if (!other || !activeFilters.has(other.type)) return;
     if (!connectionsByType[other.type]) connectionsByType[other.type] = [];
     connectionsByType[other.type].push({ node: other, weight: e.weight, entryIds: e.entryIds });
   });
 
-  // Sort each group by weight
-  Object.values(connectionsByType).forEach(arr =>
-    arr.sort((a, b) => b.weight - a.weight)
-  );
+  Object.values(connectionsByType).forEach(function(arr) { arr.sort(function(a, b) { return b.weight - a.weight; }); });
 
-  let html = `
-    <h2 class="type-${node.type}">${node.label}</h2>
-    <span class="panel-type-badge bg-${node.type} type-${node.type}">${node.type}</span>
-    <div class="panel-entry-count">${node.entryCount} WoB entries</div>
-    <div class="connections-section" id="connections-list">
-  `;
+  // Build panel DOM safely
+  content.textContent = '';
 
-  const typeOrder = ['character', 'shard', 'magic', 'world', 'concept', 'book'];
-  for (const type of typeOrder) {
-    const conns = connectionsByType[type];
-    if (!conns || conns.length === 0) continue;
-    html += `<h3 class="type-${type}">${TYPE_LABELS[type] || type} (${conns.length})</h3>`;
-    for (const c of conns) {
-      html += `
-        <div class="connection-item" data-node="${c.node.id}" data-entries='${JSON.stringify(c.entryIds)}'>
-          <span class="type-${c.node.type}">${c.node.label}</span>
-          <span class="connection-weight">${c.weight}</span>
-        </div>`;
-    }
-  }
+  // Header
+  var h2 = document.createElement('h2');
+  h2.textContent = node.label;
+  content.appendChild(h2);
 
-  html += `</div><div id="entries-section"></div>`;
-  content.innerHTML = html;
+  var badge = document.createElement('div');
+  badge.className = 'gem-badge';
+  badge.style.background = GEM_COLORS[node.type] + '20';
+  badge.style.color = GEM_GLOW[node.type];
+  badge.style.border = '1px solid ' + GEM_COLORS[node.type] + '40';
+  badge.textContent = GEM_NAMES[node.type];
+  content.appendChild(badge);
 
-  // Wire up connection clicks
-  content.querySelectorAll('.connection-item').forEach(el => {
-    el.addEventListener('click', () => {
-      const otherNodeId = el.dataset.node;
-      const entryIds = JSON.parse(el.dataset.entries);
-      showEntries(nodeId, otherNodeId, entryIds);
+  var countDiv = document.createElement('div');
+  countDiv.className = 'panel-entry-count';
+  countDiv.textContent = node.entryCount + ' WoB entries';
+  content.appendChild(countDiv);
+
+  // "Browse all entries" button -- finds entries by tag
+  var browseBtn = document.createElement('button');
+  browseBtn.className = 'browse-all-btn';
+  browseBtn.textContent = 'Browse all ' + node.entryCount + ' entries \u2192';
+  browseBtn.addEventListener('click', function() {
+    showAllEntries(nodeId);
+  });
+  content.appendChild(browseBtn);
+
+  var divider = document.createElement('div');
+  divider.className = 'panel-divider';
+  content.appendChild(divider);
+
+  // Connections list
+  var connSection = document.createElement('div');
+  connSection.className = 'connections-section';
+  connSection.id = 'connections-list';
+
+  var typeOrder = ['character', 'shard', 'magic', 'world', 'concept'];
+  typeOrder.forEach(function(type) {
+    var conns = connectionsByType[type];
+    if (!conns || conns.length === 0) return;
+
+    var h3 = document.createElement('h3');
+    h3.style.color = GEM_GLOW[type];
+    h3.textContent = TYPE_LABELS[type] + ' (' + conns.length + ')';
+    connSection.appendChild(h3);
+
+    conns.forEach(function(c) {
+      var item = document.createElement('div');
+      item.className = 'connection-item';
+      item.dataset.node = c.node.id;
+      item.dataset.entries = JSON.stringify(c.entryIds);
+
+      var left = document.createElement('div');
+      left.className = 'conn-left';
+
+      var gem = document.createElement('span');
+      gem.className = 'conn-gem';
+      gem.style.background = GEM_COLORS[c.node.type];
+      left.appendChild(gem);
+
+      var nameSpan = document.createElement('span');
+      nameSpan.style.color = GEM_GLOW[c.node.type];
+      nameSpan.textContent = c.node.label;
+      left.appendChild(nameSpan);
+
+      var weight = document.createElement('span');
+      weight.className = 'connection-weight';
+      weight.style.background = GEM_COLORS[c.node.type] + '15';
+      weight.style.color = GEM_GLOW[c.node.type];
+      weight.textContent = c.weight;
+
+      item.appendChild(left);
+      item.appendChild(weight);
+      item.addEventListener('click', function() {
+        showEntries(nodeId, c.node.id, c.entryIds);
+      });
+      connSection.appendChild(item);
     });
   });
+
+  content.appendChild(connSection);
+
+  // Similar Entities section
+  var simData = similarity[nodeId];
+  if (simData && simData.length > 0) {
+    var simDivider = document.createElement('div');
+    simDivider.className = 'panel-divider';
+    content.appendChild(simDivider);
+
+    var simSection = document.createElement('div');
+    simSection.className = 'similar-section';
+
+    var simH3 = document.createElement('h3');
+    simH3.style.color = 'var(--stormlight)';
+    simH3.style.fontSize = '0.7rem';
+    simH3.style.textTransform = 'uppercase';
+    simH3.style.letterSpacing = '0.15em';
+    simH3.style.marginBottom = '0.6rem';
+    simH3.style.opacity = '0.7';
+    simH3.textContent = 'Semantically Similar';
+    simSection.appendChild(simH3);
+
+    simData.forEach(function(s) {
+      var simNode = graph.nodes.find(function(n) { return n.id === s.id; });
+      if (!simNode || !activeFilters.has(simNode.type)) return;
+
+      var item = document.createElement('div');
+      item.className = 'connection-item';
+
+      var left = document.createElement('div');
+      left.className = 'conn-left';
+
+      var gem = document.createElement('span');
+      gem.className = 'conn-gem';
+      gem.style.background = GEM_COLORS[simNode.type];
+      left.appendChild(gem);
+
+      var nameSpan = document.createElement('span');
+      nameSpan.style.color = GEM_GLOW[simNode.type];
+      nameSpan.textContent = simNode.label;
+      left.appendChild(nameSpan);
+
+      var score = document.createElement('span');
+      score.className = 'connection-weight';
+      score.style.background = 'rgba(200, 220, 255, 0.08)';
+      score.style.color = 'var(--stormlight)';
+      score.textContent = (s.score * 100).toFixed(0) + '%';
+
+      item.appendChild(left);
+      item.appendChild(score);
+      item.addEventListener('click', function() {
+        focusNode(s.id);
+      });
+      simSection.appendChild(item);
+    });
+
+    content.appendChild(simSection);
+  }
+
+  var entriesSection = document.createElement('div');
+  entriesSection.id = 'entries-section';
+  content.appendChild(entriesSection);
 
   panel.classList.add('open');
 }
 
 function showEntries(nodeId, otherNodeId, entryIds) {
-  const node = graph.nodes.find(n => n.id === nodeId);
-  const other = graph.nodes.find(n => n.id === otherNodeId);
-  const section = document.getElementById('entries-section');
+  var node = graph.nodes.find(function(n) { return n.id === nodeId; });
+  var other = graph.nodes.find(function(n) { return n.id === otherNodeId; });
+  var section = document.getElementById('entries-section');
+  section.textContent = '';
 
-  let html = `
-    <div class="entries-header">
-      <h3>${node.label} &harr; ${other.label}</h3>
-      <button class="entries-back" id="entries-back">&larr; Back</button>
-    </div>
-  `;
+  // Header
+  var header = document.createElement('div');
+  header.className = 'entries-header';
 
-  for (const eid of entryIds) {
-    const entry = entries[eid];
-    if (!entry) continue;
+  var h3 = document.createElement('h3');
+  h3.textContent = node.label + ' \u2194 ' + other.label;
+  header.appendChild(h3);
 
-    const lines = entry.lines || [];
-    const collapsed = lines.length > 3;
+  var backBtn = document.createElement('button');
+  backBtn.className = 'entries-back';
+  backBtn.textContent = '\u2190 Back';
+  backBtn.addEventListener('click', function() {
+    section.style.display = 'none';
+    document.getElementById('connections-list').style.display = 'block';
+  });
+  header.appendChild(backBtn);
+  section.appendChild(header);
 
-    html += `<div class="wob-entry">
-      <div class="wob-event">${entry.event} &middot; ${entry.date}</div>`;
+  // Entries
+  entryIds.forEach(function(eid) {
+    var entry = entries[eid];
+    if (!entry) return;
+    var lines = entry.lines || [];
+    var collapsed = lines.length > 3;
 
-    const visibleLines = collapsed ? lines.slice(0, 3) : lines;
-    for (const line of visibleLines) {
-      const isBrandon = line.speaker.toLowerCase().includes('brandon') || line.speaker.toLowerCase().includes('sanderson');
-      html += `<div class="wob-line">
-        <span class="wob-speaker ${isBrandon ? 'brandon' : 'questioner'}">${line.speaker}:</span>
-        ${line.text}
-      </div>`;
+    var card = document.createElement('div');
+    card.className = 'wob-entry';
+
+    // Event line
+    var eventDiv = document.createElement('div');
+    eventDiv.className = 'wob-event';
+    var dot = document.createElement('span');
+    dot.className = 'wob-event-dot';
+    eventDiv.appendChild(dot);
+    var eventText = document.createTextNode(entry.event + ' \u00B7 ' + entry.date);
+    eventDiv.appendChild(eventText);
+    card.appendChild(eventDiv);
+
+    // Visible lines
+    var visibleLines = collapsed ? lines.slice(0, 3) : lines;
+    visibleLines.forEach(function(line) {
+      card.appendChild(createLineEl(line));
+    });
+
+    // Hidden lines + expand button
+    if (collapsed) {
+      var hiddenDiv = document.createElement('div');
+      hiddenDiv.style.display = 'none';
+      lines.slice(3).forEach(function(line) {
+        hiddenDiv.appendChild(createLineEl(line));
+      });
+      card.appendChild(hiddenDiv);
+
+      var expandBtn = document.createElement('button');
+      expandBtn.className = 'wob-expand';
+      expandBtn.textContent = 'Show ' + (lines.length - 3) + ' more lines';
+      expandBtn.addEventListener('click', function() {
+        if (hiddenDiv.style.display === 'none') {
+          hiddenDiv.style.display = 'block';
+          expandBtn.textContent = 'Show less';
+        } else {
+          hiddenDiv.style.display = 'none';
+          expandBtn.textContent = 'Show ' + (lines.length - 3) + ' more lines';
+        }
+      });
+      card.appendChild(expandBtn);
     }
+
+    // Tags
+    var tags = (entry.tags || []).slice(0, 8);
+    if (tags.length) {
+      var tagsDiv = document.createElement('div');
+      tagsDiv.className = 'wob-tags';
+      tags.forEach(function(t) {
+        var tag = document.createElement('span');
+        tag.className = 'wob-tag';
+        tag.textContent = t;
+        tagsDiv.appendChild(tag);
+      });
+      card.appendChild(tagsDiv);
+    }
+
+    section.appendChild(card);
+  });
+
+  section.style.display = 'block';
+  document.getElementById('connections-list').style.display = 'none';
+}
+
+function createLineEl(line) {
+  var div = document.createElement('div');
+  div.className = 'wob-line';
+  var speaker = document.createElement('span');
+  var isBrandon = line.speaker.toLowerCase().indexOf('brandon') >= 0 || line.speaker.toLowerCase().indexOf('sanderson') >= 0;
+  speaker.className = 'wob-speaker ' + (isBrandon ? 'brandon' : 'questioner');
+  speaker.textContent = line.speaker + ':';
+  div.appendChild(speaker);
+  // The text from Arcanum may contain HTML formatting (emphasis, links)
+  // We create a span and set textContent to safely render it as plain text
+  var textSpan = document.createElement('span');
+  textSpan.textContent = ' ' + stripHtml(line.text);
+  div.appendChild(textSpan);
+  return div;
+}
+
+function stripHtml(html) {
+  var tmp = document.createElement('div');
+  tmp.textContent = html;
+  // If the text had actual HTML tags, parse them out
+  var decoded = tmp.textContent;
+  var parser = document.createElement('div');
+  parser.innerHTML = decoded;
+  return parser.textContent || parser.innerText || decoded;
+}
+
+function showAllEntries(nodeId) {
+  var node = graph.nodes.find(function(n) { return n.id === nodeId; });
+  var section = document.getElementById('entries-section');
+  section.textContent = '';
+
+  // Find all entries tagged with this node's id
+  var matchingEntries = [];
+  Object.keys(entries).forEach(function(eid) {
+    var entry = entries[eid];
+    if (entry.tags && entry.tags.indexOf(node.id) >= 0) {
+      matchingEntries.push(entry);
+    }
+  });
+
+  // Sort by date descending
+  matchingEntries.sort(function(a, b) {
+    return (b.date || '').localeCompare(a.date || '');
+  });
+
+  // Header
+  var header = document.createElement('div');
+  header.className = 'entries-header';
+
+  var h3 = document.createElement('h3');
+  h3.textContent = 'All entries for ' + node.label + ' (' + matchingEntries.length + ')';
+  header.appendChild(h3);
+
+  var backBtn = document.createElement('button');
+  backBtn.className = 'entries-back';
+  backBtn.textContent = '\u2190 Back';
+  backBtn.addEventListener('click', function() {
+    section.style.display = 'none';
+    document.getElementById('connections-list').style.display = 'block';
+  });
+  header.appendChild(backBtn);
+  section.appendChild(header);
+
+  // Render entries
+  matchingEntries.forEach(function(entry) {
+    var lines = entry.lines || [];
+    var collapsed = lines.length > 3;
+
+    var card = document.createElement('div');
+    card.className = 'wob-entry';
+
+    var eventDiv = document.createElement('div');
+    eventDiv.className = 'wob-event';
+    var dot = document.createElement('span');
+    dot.className = 'wob-event-dot';
+    eventDiv.appendChild(dot);
+    eventDiv.appendChild(document.createTextNode(entry.event + ' \u00B7 ' + entry.date));
+    card.appendChild(eventDiv);
+
+    var visibleLines = collapsed ? lines.slice(0, 3) : lines;
+    visibleLines.forEach(function(line) { card.appendChild(createLineEl(line)); });
 
     if (collapsed) {
-      const hiddenHtml = lines.slice(3).map(line => {
-        const isBrandon = line.speaker.toLowerCase().includes('brandon') || line.speaker.toLowerCase().includes('sanderson');
-        return `<div class="wob-line">
-          <span class="wob-speaker ${isBrandon ? 'brandon' : 'questioner'}">${line.speaker}:</span>
-          ${line.text}
-        </div>`;
-      }).join('');
-      html += `<div class="wob-hidden" style="display:none">${hiddenHtml}</div>`;
-      html += `<button class="wob-expand">Show ${lines.length - 3} more lines</button>`;
+      var hiddenDiv = document.createElement('div');
+      hiddenDiv.style.display = 'none';
+      lines.slice(3).forEach(function(line) { hiddenDiv.appendChild(createLineEl(line)); });
+      card.appendChild(hiddenDiv);
+
+      var expandBtn = document.createElement('button');
+      expandBtn.className = 'wob-expand';
+      expandBtn.textContent = 'Show ' + (lines.length - 3) + ' more lines';
+      expandBtn.addEventListener('click', function() {
+        if (hiddenDiv.style.display === 'none') {
+          hiddenDiv.style.display = 'block';
+          expandBtn.textContent = 'Show less';
+        } else {
+          hiddenDiv.style.display = 'none';
+          expandBtn.textContent = 'Show ' + (lines.length - 3) + ' more lines';
+        }
+      });
+      card.appendChild(expandBtn);
     }
 
-    const tags = (entry.tags || []).slice(0, 8);
+    var tags = (entry.tags || []).slice(0, 8);
     if (tags.length) {
-      html += `<div class="wob-tags">${tags.map(t => `<span class="wob-tag">${t}</span>`).join('')}</div>`;
+      var tagsDiv = document.createElement('div');
+      tagsDiv.className = 'wob-tags';
+      tags.forEach(function(t) {
+        var tag = document.createElement('span');
+        tag.className = 'wob-tag';
+        tag.textContent = t;
+        tagsDiv.appendChild(tag);
+      });
+      card.appendChild(tagsDiv);
     }
 
-    html += `</div>`;
-  }
+    section.appendChild(card);
+  });
 
-  section.innerHTML = html;
   section.style.display = 'block';
-
-  // Wire up expand buttons
-  section.querySelectorAll('.wob-expand').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const hidden = btn.previousElementSibling;
-      if (hidden.style.display === 'none') {
-        hidden.style.display = 'block';
-        btn.textContent = 'Show less';
-      } else {
-        hidden.style.display = 'none';
-        btn.textContent = btn.dataset.originalText || `Show more`;
-      }
-    });
-  });
-
-  // Back button
-  document.getElementById('entries-back').addEventListener('click', () => {
-    section.style.display = 'none';
-  });
+  document.getElementById('connections-list').style.display = 'none';
 }
 
 function closePanel() {
   document.getElementById('panel').classList.remove('open');
 }
 
-// ── Filters ──────────────────────────────────────────────────────────────────
+// ── Filters ─────────────────────────────────────────────────────────────────
 
 function buildFilters() {
-  const container = document.getElementById('filters');
-  for (const [type, label] of Object.entries(TYPE_LABELS)) {
-    const btn = document.createElement('button');
+  var container = document.getElementById('filters');
+  Object.keys(TYPE_LABELS).forEach(function(type) {
+    var btn = document.createElement('button');
     btn.className = 'filter-btn';
-    btn.style.borderColor = TYPE_COLORS[type];
-    btn.style.color = TYPE_COLORS[type];
-    btn.textContent = label;
     btn.dataset.type = type;
-    btn.addEventListener('click', () => toggleFilter(type, btn));
+
+    var gem = document.createElement('span');
+    gem.className = 'filter-gem';
+    gem.style.background = GEM_COLORS[type];
+    btn.appendChild(gem);
+
+    var label = document.createTextNode(TYPE_LABELS[type]);
+    btn.appendChild(label);
+
+    btn.addEventListener('mouseenter', function() {
+      if (!btn.classList.contains('off')) {
+        btn.style.borderColor = GEM_COLORS[type];
+      }
+    });
+    btn.addEventListener('mouseleave', function() {
+      btn.style.borderColor = '';
+    });
+    btn.addEventListener('click', function() { toggleFilter(type, btn); });
     container.appendChild(btn);
-  }
+  });
 }
 
 function toggleFilter(type, btn) {
@@ -788,68 +1794,85 @@ function toggleFilter(type, btn) {
 }
 
 function applyFilters() {
-  window._nodes.select('circle')
-    .attr('fill-opacity', d => activeFilters.has(d.type) ? 0.8 : 0.05)
-    .attr('stroke-opacity', d => activeFilters.has(d.type) ? 0.3 : 0.02);
-  window._nodes.select('text')
-    .attr('fill-opacity', d => activeFilters.has(d.type) ? 1 : 0.05);
+  window._nodes.select('.gem-node')
+    .transition().duration(200)
+    .attr('fill-opacity', function(d) { return activeFilters.has(d.type) ? 0.85 : 0.04; })
+    .attr('stroke-opacity', function(d) { return activeFilters.has(d.type) ? 0.3 : 0.02; });
+  window._nodes.select('.gem-glow')
+    .transition().duration(200)
+    .attr('fill-opacity', function(d) { return activeFilters.has(d.type) ? 0.1 : 0.01; });
+  window._nodes.select('.gem-label')
+    .transition().duration(200)
+    .attr('fill-opacity', function(d) { return activeFilters.has(d.type) ? 0.75 : 0.03; });
 }
 
-// ── Search ───────────────────────────────────────────────────────────────────
+// ── Search ──────────────────────────────────────────────────────────────────
 
 function setupSearch() {
-  const input = document.getElementById('search-input');
-  const suggestions = document.getElementById('search-suggestions');
-  const clearBtn = document.getElementById('search-clear');
-  let activeIndex = -1;
+  var input = document.getElementById('search-input');
+  var suggestions = document.getElementById('search-suggestions');
+  var clearBtn = document.getElementById('search-clear');
+  var activeIndex = -1;
 
-  input.addEventListener('input', () => {
-    const q = input.value.trim().toLowerCase();
+  input.addEventListener('input', function() {
+    var q = input.value.trim().toLowerCase();
     clearBtn.style.display = q ? 'block' : 'none';
     if (q.length < 1) { suggestions.style.display = 'none'; return; }
 
-    const matches = graph.nodes
-      .filter(n => n.id.includes(q) || n.label.toLowerCase().includes(q))
-      .sort((a, b) => b.entryCount - a.entryCount)
+    var matches = graph.nodes
+      .filter(function(n) { return n.id.indexOf(q) >= 0 || n.label.toLowerCase().indexOf(q) >= 0; })
+      .sort(function(a, b) { return b.entryCount - a.entryCount; })
       .slice(0, 15);
 
     if (matches.length === 0) { suggestions.style.display = 'none'; return; }
 
     activeIndex = -1;
-    suggestions.innerHTML = matches.map((m, i) => `
-      <div class="suggestion" data-id="${m.id}" data-index="${i}">
-        <span class="type-${m.type}">${m.label}</span>
-        <span class="tag-type bg-${m.type} type-${m.type}">${m.type}</span>
-      </div>
-    `).join('');
-    suggestions.style.display = 'block';
+    suggestions.textContent = '';
 
-    suggestions.querySelectorAll('.suggestion').forEach(el => {
-      el.addEventListener('click', () => {
-        input.value = el.querySelector('span').textContent;
+    matches.forEach(function(m, i) {
+      var div = document.createElement('div');
+      div.className = 'suggestion';
+      div.dataset.id = m.id;
+      div.dataset.index = i;
+
+      var nameSpan = document.createElement('span');
+      nameSpan.style.color = GEM_GLOW[m.type];
+      nameSpan.textContent = m.label;
+      div.appendChild(nameSpan);
+
+      var tagSpan = document.createElement('span');
+      tagSpan.className = 'tag-type';
+      tagSpan.style.background = GEM_COLORS[m.type] + '20';
+      tagSpan.style.color = GEM_GLOW[m.type];
+      tagSpan.textContent = GEM_NAMES[m.type];
+      div.appendChild(tagSpan);
+
+      div.addEventListener('click', function() {
+        input.value = '';
+        clearBtn.style.display = 'none';
         suggestions.style.display = 'none';
-        focusNode(el.dataset.id);
+        focusNode(m.id);
       });
+      suggestions.appendChild(div);
     });
+
+    suggestions.style.display = 'block';
   });
 
-  input.addEventListener('keydown', (e) => {
-    const items = suggestions.querySelectorAll('.suggestion');
+  input.addEventListener('keydown', function(e) {
+    var items = suggestions.querySelectorAll('.suggestion');
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       activeIndex = Math.min(activeIndex + 1, items.length - 1);
-      items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+      items.forEach(function(el, i) { el.classList.toggle('active', i === activeIndex); });
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       activeIndex = Math.max(activeIndex - 1, 0);
-      items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+      items.forEach(function(el, i) { el.classList.toggle('active', i === activeIndex); });
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (activeIndex >= 0 && items[activeIndex]) {
-        items[activeIndex].click();
-      } else if (items.length > 0) {
-        items[0].click();
-      }
+      if (activeIndex >= 0 && items[activeIndex]) items[activeIndex].click();
+      else if (items.length > 0) items[0].click();
     } else if (e.key === 'Escape') {
       suggestions.style.display = 'none';
       input.blur();
@@ -857,32 +1880,163 @@ function setupSearch() {
     }
   });
 
-  clearBtn.addEventListener('click', () => {
+  clearBtn.addEventListener('click', function() {
     input.value = '';
     clearBtn.style.display = 'none';
     suggestions.style.display = 'none';
     unfocus();
   });
 
-  // Close suggestions on outside click
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', function(e) {
     if (!e.target.closest('#search-box')) suggestions.style.display = 'none';
   });
 }
 
-// ── Keyboard shortcuts ───────────────────────────────────────────────────────
+// ── Keyboard shortcuts ──────────────────────────────────────────────────────
 
-document.addEventListener('keydown', (e) => {
+document.addEventListener('keydown', function(e) {
   if (e.key === '/' && !e.target.matches('input')) {
     e.preventDefault();
     document.getElementById('search-input').focus();
   }
-  if (e.key === 'Escape') {
-    unfocus();
-  }
+  if (e.key === 'Escape') unfocus();
 });
 
-// ── Go ───────────────────────────────────────────────────────────────────────
+// ── Embedding Controls ──────────────────────────────────────────────────────
+
+var scoresData = null;
+var explicitTagsByEntry = {};
+var baselineConnected = {};
+
+function buildExplicitTagsByEntry() {
+  var eids = Object.keys(entries);
+  for (var i = 0; i < eids.length; i++) {
+    var eid = eids[i];
+    var entry = entries[eid];
+    if (entry.tags && entry.tags.length > 0) {
+      explicitTagsByEntry[eid] = entry.tags;
+    }
+  }
+}
+
+function buildBaselineConnected() {
+  // Entries that appear in at least one edge in graph.json
+  for (var i = 0; i < graph.edges.length; i++) {
+    var e = graph.edges[i];
+    var src = typeof e.source === 'object' ? e.source.id : e.source;
+    var tgt = typeof e.target === 'object' ? e.target.id : e.target;
+    baselineConnected[src] = true;
+    baselineConnected[tgt] = true;
+  }
+}
+
+function setupEmbeddingControls() {
+  var tuningToggle = document.getElementById('tuning-toggle-btn');
+  var tuningPanel = document.getElementById('tuning-panel');
+  var applyBtn = document.getElementById('apply-embeddings-btn');
+  var statsEl = document.getElementById('embedding-stats');
+
+  // Slider value labels: wire up input events
+  var sliders = [
+    { id: 'slider-calibration-percentile', valueId: 'value-calibration-percentile', format: function(v) { return String(parseInt(v, 10)); } },
+    { id: 'slider-min-specificity',        valueId: 'value-min-specificity',        format: function(v) { return parseFloat(v).toFixed(1); } },
+    { id: 'slider-confidence-margin',      valueId: 'value-confidence-margin',      format: function(v) { return parseFloat(v).toFixed(2); } },
+    { id: 'slider-min-edge-weight',        valueId: 'value-min-edge-weight',        format: function(v) { return String(parseInt(v, 10)); } }
+  ];
+
+  for (var i = 0; i < sliders.length; i++) {
+    (function(s) {
+      var slider = document.getElementById(s.id);
+      var valueEl = document.getElementById(s.valueId);
+      slider.addEventListener('input', function() {
+        valueEl.textContent = s.format(slider.value);
+      });
+    })(sliders[i]);
+  }
+
+  // Toggle tuning panel
+  tuningToggle.addEventListener('click', function() {
+    var isOpen = tuningPanel.classList.contains('open');
+    if (isOpen) {
+      tuningPanel.classList.remove('open');
+      tuningToggle.textContent = 'Tune';
+    } else {
+      tuningPanel.classList.add('open');
+      tuningToggle.textContent = 'Hide';
+    }
+  });
+
+  // Apply button
+  applyBtn.addEventListener('click', function() {
+    applyBtn.disabled = true;
+    applyBtn.textContent = 'Computing...';
+    statsEl.textContent = 'Loading scores...';
+
+    // Use setTimeout to allow UI to update before heavy computation
+    setTimeout(function() {
+      loadScoresAndCompute(applyBtn, statsEl);
+    }, 50);
+  });
+}
+
+function loadScoresAndCompute(applyBtn, statsEl) {
+  var basePath = window.location.pathname.replace(/\/[^\/]*$/, '');
+
+  function runCompute() {
+    // Read settings from sliders
+    var settings = {
+      calibrationPercentile: parseInt(document.getElementById('slider-calibration-percentile').value, 10),
+      minSpecificity: parseFloat(document.getElementById('slider-min-specificity').value),
+      confidenceMargin: parseFloat(document.getElementById('slider-confidence-margin').value),
+      mustBridge: document.getElementById('checkbox-must-bridge').checked,
+      minEdgeWeight: parseInt(document.getElementById('slider-min-edge-weight').value, 10)
+    };
+
+    try {
+      var result = computeImplicitTags(scoresData, explicitTagsByEntry, baselineConnected, settings);
+      var s = result.stats;
+
+      statsEl.textContent = s.totalTags + ' tags, ' +
+        s.entitiesConsidered + ' entities, ' +
+        s.totalEdges + ' edges (' +
+        s.implicitEdges + ' implicit, ' +
+        s.mixedEdges + ' mixed)';
+
+      // Store result globally for Task 5 integration
+      window._lastImplicitResult = result;
+
+    } catch (err) {
+      statsEl.textContent = 'Error: ' + err.message;
+    }
+
+    applyBtn.disabled = false;
+    applyBtn.textContent = 'Apply';
+  }
+
+  // Load scores.json if not already cached
+  if (scoresData) {
+    runCompute();
+  } else {
+    fetch(basePath + '/data/scores.json')
+      .then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function(data) {
+        scoresData = data;
+        statsEl.textContent = 'Computing...';
+        // Another setTimeout so UI updates before heavy computation
+        setTimeout(runCompute, 50);
+      })
+      .catch(function(err) {
+        statsEl.textContent = 'Failed to load scores: ' + err.message;
+        applyBtn.disabled = false;
+        applyBtn.textContent = 'Apply';
+      });
+  }
+}
+
+// ── Go ──────────────────────────────────────────────────────────────────────
 init();
 </script>
 </body>
