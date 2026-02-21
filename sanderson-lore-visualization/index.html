@@ -891,8 +891,34 @@
     letter-spacing: 0.5px;
     transition: opacity 0.2s, box-shadow 0.2s;
   }
-  #save-reviews-btn:hover {
+  #save-reviews-btn:hover,
+  #load-reviews-btn:hover {
     box-shadow: 0 0 12px rgba(232, 196, 74, 0.3);
+  }
+  #load-reviews-btn {
+    background: rgba(10, 14, 24, 0.8);
+    border: 1px solid var(--gem-heliodor);
+    border-radius: 6px;
+    color: var(--gem-heliodor-glow);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 14px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    letter-spacing: 0.5px;
+    transition: opacity 0.2s, box-shadow 0.2s;
+  }
+  #review-filter-label {
+    font-size: 11px;
+    color: rgba(200, 223, 255, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #review-filter-unreviewed {
+    accent-color: var(--gem-heliodor);
   }
 
   #review-sort-select {
@@ -941,7 +967,7 @@
   .review-entry-id {
     font-size: 10px;
     color: rgba(200, 223, 255, 0.3);
-    max-width: 60px;
+    flex: 1.5;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1127,11 +1153,14 @@
   <div class="review-subtitle" id="review-subtitle">No implicit tags computed yet</div>
   <div id="review-actions">
     <button id="save-reviews-btn">Save Reviews</button>
+    <button id="load-reviews-btn">Load Reviews</button>
     <select id="review-sort-select">
       <option value="score-desc">Score (high to low)</option>
       <option value="score-asc">Score (low to high)</option>
       <option value="entity-asc">Entity (A-Z)</option>
+      <option value="status">Status</option>
     </select>
+    <label id="review-filter-label"><input type="checkbox" id="review-filter-unreviewed"> Unreviewed only</label>
   </div>
   <div class="review-table" id="review-table"></div>
 </div>
@@ -2467,7 +2496,9 @@ function setupReviewPanel() {
   var panel = document.getElementById('review-panel');
   var closeBtn = document.getElementById('review-close-btn');
   var saveBtn = document.getElementById('save-reviews-btn');
+  var loadBtn = document.getElementById('load-reviews-btn');
   var sortSelect = document.getElementById('review-sort-select');
+  var filterCheckbox = document.getElementById('review-filter-unreviewed');
 
   toggleBtn.addEventListener('click', function() {
     var isOpen = panel.classList.contains('open');
@@ -2486,9 +2517,19 @@ function setupReviewPanel() {
     exportReviews();
   });
 
+  loadBtn.addEventListener('click', function() {
+    loadReviews();
+  });
+
   sortSelect.addEventListener('change', function() {
     if (window._lastImplicitResult) {
-      renderReviewRows(window._lastImplicitResult.implicitTags, sortSelect.value);
+      renderReviewRows(window._lastImplicitResult.implicitTags, sortSelect.value, filterCheckbox.checked);
+    }
+  });
+
+  filterCheckbox.addEventListener('change', function() {
+    if (window._lastImplicitResult) {
+      renderReviewRows(window._lastImplicitResult.implicitTags, sortSelect.value, filterCheckbox.checked);
     }
   });
 }
@@ -2499,21 +2540,39 @@ function populateReviewPanel(result) {
     result.stats.entitiesConsidered + ' entities';
 
   var sortSelect = document.getElementById('review-sort-select');
-  renderReviewRows(result.implicitTags, sortSelect.value);
+  var filterCheckbox = document.getElementById('review-filter-unreviewed');
+  renderReviewRows(result.implicitTags, sortSelect.value, filterCheckbox.checked);
 }
 
-function renderReviewRows(implicitTags, sortMode) {
+function renderReviewRows(implicitTags, sortMode, filterUnreviewed) {
   var table = document.getElementById('review-table');
   table.textContent = '';
 
-  // Copy and sort
+  // Copy and optionally filter
   var sorted = implicitTags.slice();
+  if (filterUnreviewed) {
+    sorted = sorted.filter(function(tag) {
+      var key = tag.entity + '::' + tag.entryId;
+      return !reviewState[key];
+    });
+  }
+
+  // Sort
   if (sortMode === 'score-desc') {
     sorted.sort(function(a, b) { return b.score - a.score; });
   } else if (sortMode === 'score-asc') {
     sorted.sort(function(a, b) { return a.score - b.score; });
   } else if (sortMode === 'entity-asc') {
     sorted.sort(function(a, b) { return a.entity.localeCompare(b.entity); });
+  } else if (sortMode === 'status') {
+    var statusOrder = { undefined: 0, 'confirmed': 1, 'rejected': 2 };
+    sorted.sort(function(a, b) {
+      var sa = reviewState[a.entity + '::' + a.entryId] || undefined;
+      var sb = reviewState[b.entity + '::' + b.entryId] || undefined;
+      var diff = (statusOrder[sa] || 0) - (statusOrder[sb] || 0);
+      if (diff !== 0) return diff;
+      return b.score - a.score;
+    });
   }
 
   for (var i = 0; i < sorted.length; i++) {
@@ -2535,10 +2594,23 @@ function renderReviewRows(implicitTags, sortMode) {
     entitySpan.textContent = tag.entity;
     row.appendChild(entitySpan);
 
+    // Show entry text (truncated) instead of entry ID
     var entrySpan = document.createElement('span');
     entrySpan.className = 'review-entry-id';
-    entrySpan.textContent = tag.entryId.length > 8 ? tag.entryId.substring(0, 8) + '...' : tag.entryId;
-    entrySpan.title = tag.entryId;
+    var entryText = '';
+    if (entries && entries[tag.entryId]) {
+      var entry = entries[tag.entryId];
+      if (entry.lines && entry.lines.length > 0) {
+        entryText = entry.lines[0].text || '';
+      } else if (entry.note) {
+        entryText = entry.note;
+      }
+    }
+    if (!entryText) {
+      entryText = tag.entryId;
+    }
+    entrySpan.textContent = entryText.length > 40 ? entryText.substring(0, 40) + '...' : entryText;
+    entrySpan.title = entryText;
     row.appendChild(entrySpan);
 
     var scoreSpan = document.createElement('span');
@@ -2610,6 +2682,40 @@ function exportReviews() {
   a.download = 'implicit-tag-reviews.json';
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function loadReviews() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var data = JSON.parse(ev.target.result);
+        if (data.reviews && Array.isArray(data.reviews)) {
+          for (var i = 0; i < data.reviews.length; i++) {
+            var r = data.reviews[i];
+            if (r.entity && r.entryId && r.status && r.status !== 'pending') {
+              reviewState[r.entity + '::' + r.entryId] = r.status;
+            }
+          }
+          // Re-render if we have implicit results
+          if (window._lastImplicitResult) {
+            var sortSelect = document.getElementById('review-sort-select');
+            var filterCheckbox = document.getElementById('review-filter-unreviewed');
+            renderReviewRows(window._lastImplicitResult.implicitTags, sortSelect.value, filterCheckbox.checked);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load reviews:', err);
+      }
+    };
+    reader.readAsText(file);
+  });
+  input.click();
 }
 
 // ── Go ──────────────────────────────────────────────────────────────────────

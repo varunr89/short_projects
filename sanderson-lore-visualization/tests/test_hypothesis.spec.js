@@ -230,7 +230,97 @@ test('review panel lists implicit tags with scores', async function({ page }) {
   await expect(rejectBtn).toBeVisible();
 });
 
-// ---- Test 6: Stats display shows tag and edge counts ----
+// ---- Test 6: Clicking confirm/reject updates the tag status ----
+
+test('clicking confirm/reject updates review row status', async function({ page }) {
+  test.setTimeout(120000);
+  await page.goto(serverInfo.url + '/index.html');
+  await waitForAppReady(page);
+  await clickApplyAndWait(page);
+
+  // Open review panel
+  await page.locator('#review-toggle-btn').click();
+  await expect(page.locator('#review-panel')).toBeVisible();
+
+  // Wait for rows to render
+  var rows = page.locator('#review-panel .review-row');
+  var count = await rows.count();
+  expect(count).toBeGreaterThan(0);
+
+  var firstRow = rows.first();
+
+  // Row should not have confirmed or rejected class initially
+  var classListBefore = await firstRow.evaluate(function(el) {
+    return { confirmed: el.classList.contains('confirmed'), rejected: el.classList.contains('rejected') };
+  });
+  expect(classListBefore.confirmed).toBe(false);
+  expect(classListBefore.rejected).toBe(false);
+
+  // Click confirm button
+  await firstRow.locator('.review-confirm').click();
+  var hasConfirmed = await firstRow.evaluate(function(el) {
+    return el.classList.contains('confirmed');
+  });
+  expect(hasConfirmed).toBe(true);
+
+  // Click reject button on same row -- should switch
+  await firstRow.locator('.review-reject').click();
+  var classListAfterReject = await firstRow.evaluate(function(el) {
+    return { confirmed: el.classList.contains('confirmed'), rejected: el.classList.contains('rejected') };
+  });
+  expect(classListAfterReject.confirmed).toBe(false);
+  expect(classListAfterReject.rejected).toBe(true);
+
+  // Verify reviewState is updated in the page
+  var key = await firstRow.evaluate(function(el) { return el.dataset.key; });
+  var stateValue = await page.evaluate(function(k) { return window.reviewState[k]; }, key);
+  expect(stateValue).toBe('rejected');
+});
+
+// ---- Test 7: Save Reviews generates downloadable JSON ----
+
+test('save reviews generates JSON download', async function({ page }) {
+  test.setTimeout(120000);
+  await page.goto(serverInfo.url + '/index.html');
+  await waitForAppReady(page);
+  await clickApplyAndWait(page);
+
+  // Open review panel and confirm one tag
+  await page.locator('#review-toggle-btn').click();
+  var firstRow = page.locator('#review-panel .review-row').first();
+  await firstRow.locator('.review-confirm').click();
+
+  // Listen for the download event
+  var downloadPromise = page.waitForEvent('download');
+  await page.locator('#save-reviews-btn').click();
+  var download = await downloadPromise;
+
+  // Verify the filename
+  expect(download.suggestedFilename()).toBe('implicit-tag-reviews.json');
+
+  // Read the downloaded content and verify structure
+  var filePath = await download.path();
+  var fs = require('fs');
+  var content = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+
+  expect(content.timestamp).toBeTruthy();
+  expect(content.totalTags).toBeGreaterThan(0);
+  expect(Array.isArray(content.reviews)).toBe(true);
+  expect(content.reviews.length).toBeGreaterThan(0);
+
+  // At least one review should be confirmed (the one we clicked)
+  var confirmedReviews = content.reviews.filter(function(r) { return r.status === 'confirmed'; });
+  expect(confirmedReviews.length).toBeGreaterThanOrEqual(1);
+
+  // Each review should have required fields
+  var firstReview = content.reviews[0];
+  expect(firstReview.entity).toBeTruthy();
+  expect(firstReview.entryId).toBeTruthy();
+  expect(typeof firstReview.score).toBe('number');
+  expect(['pending', 'confirmed', 'rejected']).toContain(firstReview.status);
+});
+
+// ---- Test 8: Stats display shows tag and edge counts ----
 
 test('stats display shows tag and edge counts after Apply', async function({ page }) {
   test.setTimeout(120000);
