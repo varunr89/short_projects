@@ -8,11 +8,13 @@
 
 ---
 
-AI has become a very polarizing topic on par with politics. I have deep faith in the ability of deep neural networks and math to improve the human condition but also acknowledge the problem that current AI has its pitfalls (see my writeup on car wash test - feb 2026). I've spent two and a half years testing every major AI model release. Not through demos. By integrating each one into real work: customer communications, data analysis, code generation, product planning. But in every team I have worked with, at most 1 in 20 engineers had truly adopted AI into their daily workflow. Not just across the company but among core engineering and product teams. Young, tech-savvy people who build software for a living. The people who should have been first.
+I have deep faith in the ability of deep neural networks and math to improve the human condition but also acknowledge the problem that current AI has its pitfalls (see my writeup on [the car wash test](/blog/the-car-wash-test)). I've spent two and a half years testing every major AI model release. Not through demos. By integrating each one into real work: customer communications, data analysis, code generation, product planning.
 
-Last week, Apollo's chief economist Torsten Slok put it perfectly: "AI is everywhere except in the incoming macroeconomic data." He was echoing Robert Solow's 1987 line about computers: "You can see the computer age everywhere but in the productivity statistics." GPT-5.2 just derived an original result in theoretical physics. Penn Wharton measured AI's actual aggregate impact at 0.01 percentage points. The tools work. And almost nobody is using them.
+But in every team I have worked with, at most 1 in 20 engineers had truly adopted AI into their daily workflow. Not just across the company but among core engineering and product teams. Young, tech-savvy people who build software for a living. The people who should have been first. That's not an anecdote. Once I started looking at the research, I found it everywhere.
 
-The AI capability curve vs time is practically vertical. The other (organizational productivity) is flat. That's not an anecdote. Once I started looking at the research, I found it everywhere.
+Last week, Apollo's chief economist Torsten Slok called on a widely circulated article ranking #1 on Hacker News: "AI is everywhere except in the incoming macroeconomic data." He was echoing Robert Solow's 1987 line about computers: "You can see the computer age everywhere but in the productivity statistics."
+
+>*GPT-5.2 just derived an original result in theoretical physics. Penn Wharton measured AI's actual aggregate impact at 0.01 percentage points. It seems like the tools work but almost nobody is using them.*
 
 ## The mismatch
 
@@ -59,6 +61,8 @@ This is O-Ring theory. Production is multiplicative. One broken link degrades th
 Most organizational work isn't breakthrough discovery. It's execution. Delivery. The integral under the full curve determines what ships. Right now, that integral barely moves.
 
 ## The capability-adoption gap
+
+The AI capability curve vs time is practically vertical. The other (organizational productivity) is flat.
 
 ![The Capability-Adoption Gap: AI milestones vs. enterprise adoption](../charts/03_capability_adoption_gap.png)
 *Source: Compiled from public announcements and benchmark data*
