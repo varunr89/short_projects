@@ -1016,6 +1016,157 @@
     border-radius: 3px;
   }
   #review-panel::-webkit-scrollbar-thumb:hover { background: rgba(200, 223, 255, 0.2); }
+
+  /* ── Backdrop overlay (for mobile panels) ────────────────── */
+  .panel-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .panel-backdrop.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ── Tablet (max-width: 768px) ───────────────────────────── */
+  @media (max-width: 768px) {
+    /* SVG touch action */
+    #graph-container { touch-action: none; }
+
+    /* Header */
+    #header { left: 12px; top: 12px; }
+    #title { font-size: 18px; }
+    #search-input { width: calc(100vw - 40px); }
+    #search-suggestions { width: calc(100vw - 40px); }
+    #header-line { width: calc(100vw - 40px); }
+
+    /* Filters -- reposition to bottom, horizontally scrollable */
+    #filters {
+      top: auto;
+      bottom: 140px;
+      right: 12px;
+      left: 12px;
+      max-width: none;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      justify-content: flex-start;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #filters::-webkit-scrollbar { display: none; }
+    .filter-btn { padding: 6px 10px; flex-shrink: 0; }
+
+    /* Side panel -- full width with backdrop */
+    #panel { width: 100vw; }
+
+    /* Review panel -- full width with backdrop */
+    #review-panel { width: 100vw; }
+
+    /* Tuning panel -- reposition and widen */
+    #tuning-panel {
+      width: calc(100vw - 32px);
+      left: 16px;
+      right: 16px;
+      bottom: 104px;
+    }
+
+    /* Embedding controls bar -- allow wrapping */
+    #embedding-controls-bar {
+      flex-wrap: wrap;
+      left: 12px;
+      right: 12px;
+      bottom: 48px;
+    }
+    #embedding-stats {
+      width: 100%;
+      white-space: normal;
+      margin-top: 2px;
+    }
+
+    /* Info bar -- hide on mobile */
+    #info { display: none; }
+
+    /* ── Touch targets (minimum 44px) ─────────────────────── */
+    .filter-btn {
+      min-height: 44px;
+      padding: 10px 14px;
+    }
+    #panel-close,
+    #review-close-btn {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+    .review-confirm,
+    .review-reject {
+      padding: 8px 12px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+    }
+    #tuning-toggle-btn,
+    #apply-embeddings-btn {
+      min-height: 44px;
+      padding: 10px 16px;
+    }
+    #save-reviews-btn,
+    #load-reviews-btn {
+      min-height: 44px;
+      padding: 10px 16px;
+    }
+    #review-toggle-btn {
+      min-height: 44px;
+      padding: 10px 16px;
+    }
+
+    /* Larger slider thumbs for touch */
+    .tuning-row input[type="range"]::-webkit-slider-thumb {
+      width: 24px;
+      height: 24px;
+    }
+    .tuning-row input[type="range"]::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* Larger radio buttons */
+    .edge-layer-option input[type="radio"] {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Larger checkboxes */
+    .tuning-checkbox-row input[type="checkbox"],
+    #review-filter-unreviewed {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Edge layer toggle -- wrap for touch */
+    #edge-layer-toggle {
+      gap: 10px;
+    }
+    .edge-layer-option {
+      gap: 6px;
+    }
+    .edge-layer-option label {
+      font-size: 13px;
+    }
+  }
+
+  /* ── Phone (max-width: 480px) ────────────────────────────── */
+  @media (max-width: 480px) {
+    #title { font-size: 16px; }
+    #subtitle { display: none; }
+    #panel h2 { font-size: 20px; }
+    .connection-item { padding: 10px 10px; }
+  }
 </style>
 </head>
 <body>
@@ -1221,6 +1372,46 @@ const TYPE_LABELS = {
   concept:   'Concepts',
 };
 
+// ── Mobile Backdrops ────────────────────────────────────────────────────────
+
+var _panelBackdrop = null;
+var _reviewBackdrop = null;
+
+function isMobile() {
+  return window.matchMedia('(max-width: 768px)').matches;
+}
+
+function createBackdrop(closeFn) {
+  var backdrop = document.createElement('div');
+  backdrop.className = 'panel-backdrop';
+  backdrop.addEventListener('click', closeFn);
+  document.body.appendChild(backdrop);
+  return backdrop;
+}
+
+function showBackdrop(backdrop) {
+  if (backdrop && isMobile()) {
+    backdrop.classList.add('visible');
+  }
+}
+
+function hideBackdrop(backdrop) {
+  if (backdrop) {
+    backdrop.classList.remove('visible');
+  }
+}
+
+function setupBackdrops() {
+  _panelBackdrop = createBackdrop(function() { unfocus(); });
+  _reviewBackdrop = createBackdrop(function() {
+    document.getElementById('review-panel').classList.remove('open');
+    hideBackdrop(_reviewBackdrop);
+  });
+  // z-index: side panel backdrop behind panel (z20), review behind review (z25)
+  _panelBackdrop.style.zIndex = '19';
+  _reviewBackdrop.style.zIndex = '24';
+}
+
 // ── Stormlight Particle System ──────────────────────────────────────────────
 
 class StormParticles {
@@ -1347,6 +1538,7 @@ async function init() {
   setupEmbeddingControls();
   setupEdgeLayerToggle();
   setupReviewPanel();
+  setupBackdrops();
 
   // Ensure minimum 2.2s loading for animation
   const elapsed = Date.now() - startTime;
@@ -1488,6 +1680,30 @@ function buildGraph() {
       .style('top', (event.clientY - 10) + 'px');
   })
   .on('mouseleave', function() { tooltip.style('display', 'none'); });
+
+  // Mobile tooltip: show briefly on touch
+  nodes.on('touchstart', function(event, d) {
+    if (!isMobile()) return;
+    var touch = event.touches[0];
+    var nameEl = document.createElement('div');
+    nameEl.className = 'tt-name';
+    nameEl.style.color = GEM_GLOW[d.type];
+    nameEl.textContent = d.label;
+    var metaEl = document.createElement('div');
+    metaEl.className = 'tt-meta';
+    metaEl.textContent = GEM_NAMES[d.type] + ' \u00B7 ' + d.entryCount + ' entries';
+    var ttNode = tooltip.node();
+    ttNode.textContent = '';
+    ttNode.appendChild(nameEl);
+    ttNode.appendChild(metaEl);
+    tooltip.style('display', 'block')
+      .style('left', (touch.clientX + 14) + 'px')
+      .style('top', (touch.clientY - 10) + 'px');
+    clearTimeout(window._tooltipTimer);
+    window._tooltipTimer = setTimeout(function() {
+      tooltip.style('display', 'none');
+    }, 2000);
+  }, { passive: true });
 
   // Click to focus
   nodes.on('click', function(event, d) {
@@ -1831,6 +2047,7 @@ function showPanel(nodeId, edgeData) {
   content.appendChild(entriesSection);
 
   panel.classList.add('open');
+  showBackdrop(_panelBackdrop);
 }
 
 function showEntries(nodeId, otherNodeId, entryIds) {
@@ -2053,6 +2270,7 @@ function showAllEntries(nodeId) {
 
 function closePanel() {
   document.getElementById('panel').classList.remove('open');
+  hideBackdrop(_panelBackdrop);
 }
 
 // ── Filters ─────────────────────────────────────────────────────────────────
@@ -2503,13 +2721,16 @@ function setupReviewPanel() {
     var isOpen = panel.classList.contains('open');
     if (isOpen) {
       panel.classList.remove('open');
+      hideBackdrop(_reviewBackdrop);
     } else {
       panel.classList.add('open');
+      showBackdrop(_reviewBackdrop);
     }
   });
 
   closeBtn.addEventListener('click', function() {
     panel.classList.remove('open');
+    hideBackdrop(_reviewBackdrop);
   });
 
   saveBtn.addEventListener('click', function() {
