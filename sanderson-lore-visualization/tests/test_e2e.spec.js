@@ -112,6 +112,8 @@ test('full embedding controls workflow with real data', async function({ page })
   expect(defaultTagCount).toBeGreaterThan(0);
 
   // ── Step 5: Change calibration percentile to 40, click Apply ─────────────
+  // Plan specified "threshold 0.90" but the UI uses calibration percentile instead
+  // of a global threshold slider. Higher percentile = stricter per-entity threshold.
   // Expand the tuning panel first
   await page.locator('#tuning-toggle-btn').click();
   await expect(page.locator('#tuning-panel')).toBeVisible();
