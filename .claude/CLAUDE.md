@@ -50,6 +50,32 @@ short_projects/
 - The draft should be written in Markdown and be suitable for publishing.
 - Reference charts using relative paths: `![description](../charts/01_timeseries.png)`.
 
+### Blog Writing Constitution
+
+#### Research
+- Open with a personal observation or experience. Find research that supports it, not the other way around.
+- 1-2 strong data points per section, preferring recent (last 5 years) tech industry sources. Expand to other years/industries only if nothing recent fits.
+- Every stat needs a "so what" -- if you can't tie it back to a personal insight, cut it.
+
+#### First Draft
+- Every paragraph leads with personal experience. Research is support, never the opener.
+- Write in first person. "I tested," "I saw," "when I followed up." Never "the author" or "the user."
+- Target 1,500-2,500 words. Shorter is almost always better.
+- Include charts early and often. Charts are personal and engaging, not decoration.
+
+#### Editing
+- Zero em-dashes. They are the single biggest tell that AI wrote it.
+- Vary sentence length. Use fragments for punch. One-sentence paragraphs are fine.
+- Use parentheses or periods where you'd reach for an em-dash.
+- Read it out loud (or imagine reading it). If a sentence sounds like a press release, rewrite it.
+- Second-person "you try it" moments make the reader lean in. Use them.
+
+#### Formatting
+- Horizontal rules before h2 sections for visual separation. h3s stay subordinate (no rules).
+- Charts get descriptive alt text and italic source captions beneath them.
+- Blockquotes for the one key insight per major section. Not for every quote.
+- TL;DR box at the top: problem, hypothesis, what to do.
+
 ### Publishing Drafts to bhavanaai
 - When a blog draft is ready for review, always create it as a **draft** in the bhavanaai repo at `/Users/varunr/projects/bhavanaai/` so it's viewable on the web via the admin layer.
 - Create `src/content/blog/<project-name>.md` with frontmatter: `title`, `date`, `description`, and `draft: true`.
