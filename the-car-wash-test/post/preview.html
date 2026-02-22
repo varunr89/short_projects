@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Integral Problem: Why AI Isn't Moving the Productivity Needle</title>
+<title>The Car Wash Test: Why the Model That Solved a Quantum Breakthrough Can't Wash Your Car</title>
 <style>
   :root {
     --bg: #ffffff;
@@ -67,9 +67,7 @@
   .prose h2 {
     font-size: 1.5rem;
     font-weight: 700;
-    margin: 3.5rem 0 1rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--text-muted);
+    margin: 2.5rem 0 1rem;
     line-height: 1.3;
   }
 
@@ -122,66 +120,76 @@
   }
 
   .prose blockquote {
-    border-left: 3px solid var(--text-muted);
+    border-left: 3px solid var(--border-muted);
     padding-left: 1.25rem;
-    margin: 1.5rem 0;
-    font-style: italic;
-    font-size: 1.2rem;
-    color: var(--text-muted);
-  }
-
-  .prose blockquote p {
-    margin-bottom: 0;
-  }
-
-  .prose hr {
-    border: none;
-    border-top: 1px solid var(--border-muted);
-    margin: 1.5rem 0;
-  }
-
-  .prose .caption {
-    font-size: 0.85rem;
+    margin: 1.25rem 0;
     color: var(--text-muted);
     font-style: italic;
-    margin-top: -0.5rem;
-    margin-bottom: 1.25rem;
+  }
+
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
     line-height: 1.5;
   }
 
-  .tldr-box {
-    background: rgba(37, 99, 235, 0.06);
-    border: 1px solid rgba(37, 99, 235, 0.15);
-    border-radius: 8px;
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 1.5rem;
+  .prose thead th {
+    background: #f3f4f6;
+    font-weight: 600;
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 2px solid #d1d5db;
   }
 
-  .tldr-box h2 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin: 0 0 0.75rem;
-    padding-top: 0;
-    border-top: none;
-    color: var(--text);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+  .prose tbody td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
   }
 
-  .tldr-box ul {
-    margin-left: 1.25rem;
-    margin-bottom: 0;
+  .prose tbody tr:nth-child(even) {
+    background: #f9fafb;
   }
 
-  .tldr-box li {
-    margin-bottom: 0.4rem;
-    font-size: 1rem;
+  .prose tbody tr:hover {
+    background: #f3f4f6;
+  }
+
+  .prose .result-pass {
+    color: #15803d;
+    font-weight: 600;
+  }
+
+  .prose .result-fail {
+    color: #dc2626;
+    font-weight: 600;
   }
 
   @media (prefers-color-scheme: dark) {
-    .tldr-box {
-      background: rgba(96, 165, 250, 0.08);
-      border-color: rgba(96, 165, 250, 0.2);
+    .prose thead th {
+      background: #2d2d2d;
+      border-bottom-color: #555;
+    }
+
+    .prose tbody td {
+      border-bottom-color: #3a3a3a;
+    }
+
+    .prose tbody tr:nth-child(even) {
+      background: #222;
+    }
+
+    .prose tbody tr:hover {
+      background: #2a2a2a;
+    }
+
+    .prose .result-pass {
+      color: #4ade80;
+    }
+
+    .prose .result-fail {
+      color: #f87171;
     }
   }
 
@@ -232,7 +240,7 @@
     }
   }
 
-  /* -- Commenting system layout -- */
+  /* ── Commenting system layout ── */
 
   .page-layout {
     display: flex;
@@ -647,193 +655,179 @@
 <div class="container">
 
 <header>
-  <h1>The Integral Problem: Why AI Isn't Moving the Productivity Needle</h1>
-  <time>2026-02-21</time>
+  <h1>The Car Wash Test: Why the Model That Solved a Quantum Breakthrough Can't Wash Your Car</h1>
+  <time>2026-02-15</time>
 </header>
 
 <div class="prose">
 
-<div class="tldr-box">
-  <h2>TL;DR</h2>
-  <ul>
-    <li><strong>The problem</strong>: Lab studies show 14-40% individual productivity gains from AI. Aggregate economic impact: 0.01 percentage points. A gap of roughly 1,000x.</li>
-    <li><strong>The hypothesis</strong>: AI adoption and potential gain are inversely correlated. The people who would benefit most aren't using the tools; the people using them most need them least.</li>
-    <li><strong>What to do</strong>: Mandate the AI path with patience, replace demos with team-specific training, invest in agentic interfaces, and build guardrails instead of gates.</li>
-  </ul>
-</div>
+<p>OpenAI's GPT 5.2 Pro has been making headlines. It recently contributed to solving a novel problem in quantum physics, demonstrating chain-of-thought reasoning that left even researchers impressed. This is, by many measures, the most advanced reasoning model ever built. It can dissect abstract mathematical structures, navigate multi-step logical proofs, and synthesize knowledge across scientific domains.</p>
+
+<p>So I asked it a question a five-year-old could answer.</p>
+
+<blockquote>
+<p>"I need to wash my car. The car wash is only 100 meters away. Should I walk or take my car there?"</p>
+</blockquote>
+
+<p>It thought for two minutes and forty-six seconds. Then it told me to walk.</p>
+
+<p>If you've been on social media lately, you've probably seen this meme circulating. People keep posting screenshots of AI models failing this exact question. The joke is simple: if you need your <em>car</em> washed, the car has to go to the car wash. You can't walk there and leave your dirty car sitting at home. It's a moment of absurdity that lands because the gap between "solved quantum physics" and "doesn't understand car washes" is genuinely funny.</p>
+
+<p>But is this a universal failure, or do some models handle it just fine? I decided to find out. I ran a structured test across 9 model configurations from the three frontier AI companies: OpenAI, Google, and Anthropic.</p>
+
+<h2>The Test</h2>
+
+<p><strong>Methodology:</strong> Same prompt, clean session, no priming, first-shot only. Every model got the identical question with no hints, no follow-ups, and no second chances (unless the model itself asked a clarifying question).</p>
+
+<p>Here are the results.</p>
+
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Model</th>
+<th>Result</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OpenAI</td>
+<td>ChatGPT 5.2 Instant</td>
+<td><span class="result-fail">Fail</span></td>
+<td>Confidently says "Walk." Lists health and engine benefits.</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td>ChatGPT 5.2 Thinking</td>
+<td><span class="result-fail">Fail</span></td>
+<td>Same answer. Recovers only when I challenged it: "How will I get my car washed if I am walking?"</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td>ChatGPT 5.2 Pro</td>
+<td><span class="result-fail">Fail</span></td>
+<td>Thought for 2m 45s. Lists "vehicle needs to be present" as an exception but still recommends walking.</td>
+</tr>
+<tr>
+<td>Google</td>
+<td>Gemini 3 Fast</td>
+<td><span class="result-pass">Pass</span></td>
+<td>Immediately correct. "Unless you are planning on carrying the car wash equipment back to your driveway..."</td>
+</tr>
+<tr>
+<td>Google</td>
+<td>Gemini 3 Thinking</td>
+<td><span class="result-pass">Pass</span></td>
+<td>Playfully snarky. Calls it "the ultimate efficiency paradox." Asks multiple-choice follow-up about my goals.</td>
+</tr>
+<tr>
+<td>Google</td>
+<td>Gemini 3 Pro</td>
+<td><span class="result-pass">Pass</span></td>
+<td>Clean two-sentence answer. "If you walk, the vehicle will remain dirty at its starting location."</td>
+</tr>
+<tr>
+<td>Anthropic</td>
+<td>Claude Haiku 4.5</td>
+<td><span class="result-fail">Fail</span></td>
+<td>"You should definitely walk." Same failure pattern as smaller models.</td>
+</tr>
+<tr>
+<td>Anthropic</td>
+<td>Claude Sonnet 4.5</td>
+<td><span class="result-pass">Pass</span></td>
+<td>"You should drive your car there!" Acknowledges the irony of driving 100 meters.</td>
+</tr>
+<tr>
+<td>Anthropic</td>
+<td>Claude Opus 4.6</td>
+<td><span class="result-pass">Pass</span></td>
+<td>Instant, confident. "Drive it! The whole point is to get your car washed, so it needs to be there."</td>
+</tr>
+</tbody>
+</table>
 
-<hr>
+<p>A few things jump out immediately:</p>
 
-<p>I have deep faith in the ability of deep neural networks and math to improve the human condition but also acknowledge the problem that current AI has its pitfalls (see my writeup on <a href="https://me.bhavanaai.com/blog/the-car-wash-test">the car wash test</a>). I've spent two and a half years testing every major AI model release. Not through demos. By integrating each one into real work: customer communications, data analysis, code generation, product planning.</p>
+<p><strong>OpenAI swept the wrong way: 0/3.</strong> Every single OpenAI model failed, including the most powerful reasoning model available today. The model that helped crack a quantum physics problem could not figure out that a car needs to physically be at a car wash.</p>
 
-<p>But in every team I have worked with, at most 1 in 20 engineers had truly adopted AI into their daily workflow. Not just across the company but among core engineering and product teams. Young, tech-savvy people who build software for a living. The people who should have been first. That's not an anecdote. Once I started looking at the research, I found it everywhere.</p>
+<p><strong>Google swept the right way: 3/3.</strong> Even Gemini 3 Fast, Google's smallest and cheapest model, nailed it instantly. Not a single hesitation across their entire lineup.</p>
 
-<p>Last week, Apollo's chief economist Torsten Slok called on a widely circulated article ranking #1 on Hacker News: "AI is everywhere except in the incoming macroeconomic data." He was echoing Robert Solow's 1987 line about computers: "You can see the computer age everywhere but in the productivity statistics."</p>
+<p><strong>Anthropic split down the middle.</strong> The larger models (Sonnet 4.5 and Opus 4.6) passed easily. The smallest model (Haiku 4.5) fell into the same trap as OpenAI's lineup.</p>
 
-<blockquote><p><em>GPT-5.2 just derived an original result in theoretical physics. Penn Wharton measured AI's actual aggregate impact at 0.01 percentage points. It seems like the tools work but almost nobody is using them.</em></p></blockquote>
+<p><strong>The ChatGPT 5.2 Pro case deserves special attention.</strong> This model spent nearly three minutes reasoning through the problem. In its own chain of thought, it explicitly listed "the wash requires the vehicle to be present" as a consideration. It identified the correct answer, wrote it down in its own notes, and then still concluded: walk. That's not a reasoning failure in the traditional sense. The reasoning was there. The conclusion just didn't follow from it.</p>
 
-<h2>The mismatch</h2>
+<h3>OpenAI: 0 for 3</h3>
 
-<p>In my teams, the engineers who were already the most productive were the ones experimenting with AI. They were writing the cleanest code, holding the strongest mental models. The junior engineers who would have benefited most? They barely touched the tools.</p>
+<img src="../charts/01_chatgpt_52_instant.png" alt="ChatGPT 5.2 Instant: confidently recommends walking">
 
-<img src="../charts/01_the_mismatch.png" alt="The Mismatch: AI adoption rate vs. productivity gain by employee percentile">
-<p class="caption">Sources: Brynjolfsson, Li &amp; Raymond (2023); Bick, Blandin &amp; Deming (2024)</p>
+<img src="../charts/02_chatgpt_52_thinking_followup.png" alt="ChatGPT 5.2 Thinking: says walk, then corrects when challenged">
 
-<p>The research confirms exactly what I saw. Brynjolfsson studied 5,179 customer support agents. Bottom quintile improved 35%. Top quintile? Roughly zero. Bick found a 2:1 education gradient in who actually uses AI. The workers who gain 35% adopt at half the rate of workers who gain close to zero.</p>
+<img src="../charts/05_chatgpt_52_pro.png" alt="ChatGPT 5.2 Pro: thinks for 2m 45s, still says walk">
 
-<p>Almost perfectly inverted.</p>
+<h3>Google: 3 for 3</h3>
 
-<blockquote><p><em>The people standing to gain the most from these tools are the ones who aren't using them, and the people using them the most are the ones who need them least.</em></p></blockquote>
+<img src="../charts/04_gemini_3_fast.png" alt="Gemini 3 Fast: immediately gets it right">
 
-<p>This is the thesis that makes everything else click. It's not just that adoption is low. Adoption and potential gain are inversely correlated.</p>
+<img src="../charts/09_gemini_3_thinking.png" alt="Gemini 3 Thinking: the snarky efficiency paradox response">
 
-<h2>The integral problem</h2>
+<img src="../charts/10_gemini_3_pro.png" alt="Gemini 3 Pro: clean, two-sentence knockout">
 
-<p>I think about organizational productivity as an integral. The y-axis is each employee's output. The x-axis is their percentile. The total productivity of the organization is the area under that curve.</p>
+<h3>Anthropic: Split Decision</h3>
 
-<img src="../charts/02_the_integral_problem.png" alt="The Integral Problem: realized vs. unrealized productivity gains">
-<p class="caption">Sources: Brynjolfsson et al. (2023); BCG-Harvard (2023); Bick et al. (2024)</p>
+<img src="../charts/06_claude_haiku_45.png" alt="Claude Haiku 4.5: fails with the same pattern">
 
-<p>Look at the chart. The red dashed line is what we'd gain if everyone adopted AI. Huge lifts at the bottom, tapering toward the top. The blue line is what we're actually capturing. Almost nothing. Only the top few percent are using the tools. That red shaded area? All unrealized potential.</p>
+<img src="../charts/07_claude_sonnet_45.png" alt="Claude Sonnet 4.5: correct, appreciates the irony">
 
-<p><em>Realized Gain(x) = Individual Gain(x) x Adoption Rate(x)</em></p>
+<img src="../charts/08_claude_opus_46.png" alt="Claude Opus 4.6: instant, no hesitation">
 
-<p>You're multiplying big numbers by small numbers everywhere. Lab studies find 14-40% individual gains. Penn Wharton measured 0.01 percentage points of aggregate impact. A 1,000x gap. The Anthropic Economic Index found AI usage has a Gini coefficient of 0.84 to 0.86. (That's more concentrated than income inequality in the most unequal country on Earth.)</p>
+<h2>What Went Wrong?</h2>
 
-<h3>Amdahl's Law</h3>
+<p>Here's the intuition. Most text on the internet about "should I walk or drive 100 meters" says walk. Health blogs, environmental articles, urban planning pieces, general common sense advice. There is an enormous volume of content that pattern-matches "short distance + walk or drive?" to the answer "walk, obviously." AI models are trained on this text. When the question hits that familiar pattern, the statistical prior overwhelmingly favors one answer.</p>
 
-<p>Even among the people who do use AI, the gains disappoint. I spend maybe 10% of my time writing code. (A Microsoft study of 484 developers found the same number.) The rest is meetings, debugging, architecture, code review. All the stuff AI can't touch yet.</p>
+<p>The problem is that this question isn't actually about whether to walk or drive a short distance. It's about getting a specific object to a specific location. The car isn't just your mode of transport here; it's the thing being serviced. Recognizing this requires the model to stop, re-read the premise, and connect two facts: "I need to wash my car" and "the car wash is 100 meters away." The car must physically be at the car wash for the goal to be accomplished.</p>
 
-<p>If AI makes coding 3x faster, the theoretical maximum improvement is 15%. Even if coding became instant, the max is 25%. That's Amdahl's Law: you can only speed up the fraction of work AI touches.</p>
+<p>This is a task that demands overriding the obvious answer with contextual reasoning. And that's surprisingly hard for models, because the obvious answer is backed by millions of training examples all pointing in the same direction.</p>
 
-<p>METR ran the most rigorous test to date. Sixteen experienced developers, randomized to use or not use AI tools on 246 tasks. The AI group was 19% <em>slower</em>. But they believed they'd sped up by 20%.</p>
+<p>The ChatGPT 5.2 Pro case is the most revealing failure of the bunch. This model didn't lack reasoning ability. It explicitly noted that the vehicle needs to be present at the car wash. It wrote it down. It considered it. And then it walked right past its own correct analysis and defaulted to the statistical prior anyway. The reasoning was present; the conclusion simply didn't follow. If that doesn't make you pause, it should.</p>
 
-<h3>The organizational multiplier</h3>
+<h2>Pre-training vs. Reasoning: The Deeper Tension</h2>
 
-<p>When 1 in 20 on my team used AI effectively, the other 19 still set the pace. Didn't matter that my best engineer wrote code twice as fast if the bottleneck was design review or QA or the deployment pipeline.</p>
+<p>For those interested in the technical layer underneath, this test exposes a fundamental tension in how modern AI models work: the pull between pre-training distributions and RL-trained reasoning.</p>
 
-<p>This is O-Ring theory. Production is multiplicative. One broken link degrades the whole chain. Google's Project Aristotle confirmed it across 180 teams: how people interact matters more than who's on the team.</p>
+<p>Pre-training creates strong statistical priors from internet text. When a model has seen thousands of examples where "short distance" leads to "just walk," that prior becomes deeply embedded in the model's weights. Reinforcement learning from human feedback (RLHF) and chain-of-thought prompting are supposed to provide a reasoning layer that can override those priors when they conflict with logic. But this test shows that the override doesn't always engage.</p>
 
-<p>Most organizational work isn't breakthrough discovery. It's execution. Delivery. The integral under the full curve determines what ships. Right now, that integral barely moves.</p>
+<p>The prior here is exceptionally strong. Nearly all "short distance, walk or drive" content on the internet says walk. The logical step required to break free of that prior is subtle: you have to re-interpret what the "object" in the scenario actually is. The car isn't just transport. It's the patient. It's the thing that needs to go to the doctor. Missing that re-framing means the model never even realizes there's a conflict between its prior and the correct answer.</p>
 
-<h2>The capability-adoption gap</h2>
+<p>Why might Gemini have swept 3/3? We can only speculate. It could be a different training data mix, a different weighting in RLHF tuning that emphasizes practical and physical reasoning, or architectural differences in how reasoning interacts with priors. We can't know for sure without access to the training details. But the 3/3 vs 0/3 split between Google and OpenAI is too clean to ignore.</p>
 
-<p>The AI capability curve vs time is practically vertical. The other (organizational productivity) is flat.</p>
+<p>The ChatGPT 5.2 Thinking model's recovery when challenged is worth noting too. When I followed up with "How will I get my car washed if I am walking?", the model immediately course-corrected. It didn't struggle. It didn't hedge. It just got it right. This tells us the reasoning capability absolutely exists within the model. It just doesn't activate on the first pass without that additional context nudge. The model needs to be told that its pattern-matched answer is wrong before it engages the deeper reasoning that was available all along.</p>
 
-<img src="../charts/03_capability_adoption_gap.png" alt="The Capability-Adoption Gap: AI milestones vs. enterprise adoption">
-<p class="caption">Source: Compiled from public announcements and benchmark data</p>
+<h2>The Car Wash Test Isn't Alone</h2>
 
-<p>Look at this chart. March 2023, GPT-4 passes the bar exam. Late 2024, reasoning models hit PhD levels. Early 2025, autonomous coding agents ship. February 2026, GPT-5.2 contributes original physics.</p>
+<p>This kind of failure has a family history. The car wash test joins a lineage of deceptively simple questions that expose model blind spots:</p>
 
-<p>The capability curve is vertical. Adoption? Flat. Lucidworks found 42% of companies abandoned most AI initiatives in 2025 (up from 17% in 2024). Companies aren't ramping up. They're giving up.</p>
+<ul>
+<li><strong>"How many R's in strawberry?"</strong> Models consistently said 2 (there are 3). Tokenization means the model never "sees" individual letters; it processes tokens, not characters, and can't reliably count within them.</li>
+<li><strong>"Is 9.11 greater than 9.9?"</strong> Models said yes, likely treating the decimal portions as integers (11 > 9) rather than understanding decimal place value.</li>
+</ul>
 
-<p>The exceptions prove the rule. Shopify mandated AI as a baseline expectation. JPMorgan went from banning ChatGPT to deploying LLM Suite to 200,000 employees in eight months. The gap isn't between companies that have AI and those that don't. It's between companies that enabled it broadly and those still running pilots.</p>
+<p>The common thread across all of these: they aren't hard problems. A child can answer each one correctly. They're problems where the obvious pattern-match answer is wrong, and the model has to resist its own statistical instincts to arrive at the truth.</p>
 
-<h2>Why the gap exists</h2>
+<p>The car wash test adds a new dimension to this family. It's not about tokenization quirks or number formatting. It's about understanding the physical relationship between an action (washing) and an object (the car). The model needs to reason about what needs to be <em>where</em> for the goal to be accomplished. That's spatial, physical, and goal-oriented reasoning all wrapped into one sentence. And the fact that a simple, silly question can expose that gap is exactly what makes it so useful.</p>
 
-<p>I've watched this up close for over two years. Five problems keep surfacing.</p>
+<h2>Testing the Edges</h2>
 
-<h3>The learning curve is real</h3>
+<p>I want to be clear about something: these tests aren't about dunking on AI. I'm not here to point and laugh. The same GPT 5.2 Pro that couldn't figure out the car wash question contributed to a genuine quantum physics breakthrough. These models are extraordinarily powerful tools that are already changing how research, engineering, and creative work get done. I believe in that potential deeply.</p>
 
-<p>Even for me, getting truly productive with AI took real effort. I got lucky. During paternity leave, I had unstructured time to experiment. I'd hold my son in one arm and voice-transcribe prompts with the other. That gave me something almost no working professional gets: hours of low-stakes experimentation.</p>
+<p>But they have blind spots. And finding those blind spots matters. Every viral failure like the car wash test is data. It's a signal. It tells researchers exactly what kind of reasoning still needs work: the ability to override strong statistical priors when physical context demands it, the ability to re-frame what the "object" in a scenario actually is, the ability to follow your own chain of thought to its logical conclusion instead of snapping back to the default.</p>
 
-<p>Most employees get maybe 30 minutes before the next Slack message. That's not enough. Humlum and Vestergaard confirmed this with 18,000 workers: even when researchers told people AI could halve their task time, it had zero effect on usage. Zero. Information doesn't drive adoption. Friction does.</p>
-
-<h3>The belief deficit</h3>
-
-<p>People's impression of AI comes from two places, both misleading.</p>
-
-<p>Google's AI Overview told users to eat rocks. GPT-5.2 Pro spent nearly three minutes reasoning about whether to walk or drive to the car wash, explicitly noted that "the wash requires the vehicle to be present," and still told me to walk.</p>
-
-<p>Then there's the marketing. Companies spent $8 million per Super Bowl spot. 23% of ads featured AI. Google's Gemini ad hallucinated a fact about Gouda cheese on national television. Only 32% of Americans trust AI. Can you blame them?</p>
-
-<blockquote><p><em>The irony is that the tools that actually work (terminal-based coding agents, agentic workflows) succeed because they target constrained domains where outputs are immediately verifiable. Does the code compile? Does the test pass? But that's not flashy enough for a Super Bowl ad.</em></p></blockquote>
-
-<p>BCG found that leadership support alone swings positive AI sentiment from 15% to 55%. That's a 40-point swing just from managers taking it seriously.</p>
-
-<h3>Corporate training has not evolved</h3>
-
-<p>Every AI training I attended was a marketing person demoing integrations nobody asked for, or an executive showing tools employees aren't allowed to use. The audience nods politely. Nothing changes.</p>
-
-<p>BCG's data: 5+ hours of training gets you to 79% regular usage vs. 67% with less. Twelve percentage points from actually investing. Real training means capstone projects. Each team builds a workflow for their own use case. Not a slide deck. Not a lunch-and-learn.</p>
-
-<h3>Enterprise tools aren't ready</h3>
-
-<p>Companies shove half-baked AI wrappers down employees' throats. "Use our internal chatbot. It's approved by security." You try it. It's slow. The model is two generations behind. You go back to whatever you were doing before.</p>
-
-<p>Meanwhile, the tools that actually work are blocked. So 78% of AI users bring their own tools. JPMorgan figured this out. They went from banning ChatGPT to deploying LLM Suite to 200,000 employees. Solve compliance at the infrastructure level. Build guardrails, not gates.</p>
-
-<h3>Productivity is deeply personal</h3>
-
-<p>The way I write code is different from how you write code. There is no single AI workflow that fits everyone. Enterprise tools pretend otherwise.</p>
-
-<p>The Anthropic Gini data (0.84-0.86) isn't measuring adoption rate. It's measuring how personal productivity is. Power users invested time to build workflows for their specific work. You can't copy-paste that across a thousand people. BCG's "silicon ceiling" data backs this up: frontline adoption stalled at 51% in 2023 and hasn't moved since.</p>
-
-<h2>The agentic interface</h2>
-
-<p>AI is in its pre-browser moment. In the early 1990s, the internet was extraordinary. But using it meant memorizing terminal commands and configuring network settings manually. Then the browser shipped. The technology didn't change. The interface did.</p>
-
-<p>The most powerful AI tooling today lives in the terminal. Claude Code, Codex CLI, Aider. That's structural. CLI tools have full access to your machine: read files, write code, run tests, chain tools together. You can't do that from a chat window.</p>
-
-<p>Two years ago, I ran a customer outreach program at a large tech company. Slow, imprecise, generic messages. Today, with agentic tools, the same campaign can be surgical. Pull data from a CSV. Look up contacts through browser automation. Draft tailored emails. Send through authenticated APIs. All from one interface. But it took real effort to build.</p>
-
-<p>Claude Code crossed $1 billion in annualized revenue faster than ChatGPT. Cursor hit $1 billion ARR. Developers aren't waiting for enterprise tooling. They're building their own workflows now.</p>
-
-<h2>What to do Monday morning</h2>
-
-<h3>Mandate the AI path, with patience</h3>
-
-<p>Default to the AI-assisted approach for new projects. But budget for a temporary productivity dip. You can't mandate AI and penalize people for being slower while they learn.</p>
-
-<h3>Invest in applied training, not demos</h3>
-
-<p>Stop demo-driven training. Each team builds a tool for their own use case, with coaching from AI-fluent colleagues. I became fluent during paternity leave because I had unstructured time. Create that expectation: if it can be done with AI, do it with AI.</p>
-
-<h3>Embrace agentic interfaces</h3>
-
-<p>The productivity unlock isn't the enterprise chat wrapper. It's tools that integrate into real workflows. Pulling data, automating actions, chaining operations. Give teams budget and permission to explore them.</p>
-
-<h3>Accept that productivity is personal</h3>
-
-<p>Stop prescribing one-size-fits-all. Give people time and permission to find their own use cases. The goal is to move the whole distribution rightward, not force everyone through the same door.</p>
-
-<h3>Enable, don't gate</h3>
-
-<p>Stop battling shadow AI. You will lose. If 78% of users bring their own tools, the problem is your approved tools. Solve security at the platform level. Trust your employees.</p>
-
-<h2>The bottom line</h2>
-
-<p>The gap between AI capability and AI impact is organizational, not technological. The mismatch means the people who'd benefit most aren't using the tools. Amdahl's Law means even among those who do, the gains are bounded. The integral barely moves.</p>
-
-<p>Nearly 90% of 6,000 executives in the NBER study said AI has had no impact on productivity. Yet they forecast 1.4% growth over the next three years. The belief is there. The results aren't. That's the Solow paradox, playing out again.</p>
-
-<p>The integral only changes when the whole curve moves. Not just the tail.</p>
+<p>The best way to trust AI more is to understand precisely where it fails.</p>
 
 </div>
 
 <footer>
-
-<div class="sources">
-<h4>Sources</h4>
-<ul>
-  <li><strong>Productivity gains by skill level:</strong> Brynjolfsson, Li, and Raymond (2023); BCG-Harvard (Dell'Acqua et al., 2023)</li>
-  <li><strong>Adoption demographics:</strong> Bick, Blandin, and Deming (2024)</li>
-  <li><strong>Usage concentration:</strong> Anthropic, "Economic Index" (September 2025)</li>
-  <li><strong>Macro productivity:</strong> Penn Wharton Budget Model; San Francisco Fed</li>
-  <li><strong>Organizational theory:</strong> Kremer, "The O-Ring Theory of Economic Development" (1993)</li>
-  <li><strong>Team performance:</strong> Google Project Aristotle</li>
-  <li><strong>Amdahl's Law:</strong> Amdahl (1967); Microsoft developer time study</li>
-  <li><strong>Developer productivity data:</strong> METR RCT (2025)</li>
-  <li><strong>Initiative abandonment:</strong> Lucidworks, AI Survey 2025</li>
-  <li><strong>Shadow AI:</strong> Industry surveys (2024-2025)</li>
-  <li><strong>Training effectiveness:</strong> BCG, "AI at Work" (2024)</li>
-  <li><strong>Belief deficit:</strong> BCG leadership support findings (2024); Edelman Trust Barometer</li>
-  <li><strong>Company case studies:</strong> Shopify; JPMorgan</li>
-  <li><strong>NBER executive survey:</strong> Bick et al. (2025)</li>
-  <li><strong>Agentic tools:</strong> Claude Code; Cursor ARR milestones</li>
-</ul>
-</div>
-
 </footer>
 
 </div>
@@ -846,13 +840,13 @@
 (function() {
   'use strict';
 
-  // -- State --
+  // ── State ──
   var STORAGE_KEY = 'draft-comments-' + slugify(document.title);
   var comments = []; // Array of { id, selectedText, comment, section, paragraphContext, charOffset }
   var commentCounter = 0;
   var activeCommentId = null;
 
-  // -- DOM references --
+  // ── DOM references ──
   var prose = document.querySelector('.prose');
   var commentsColumn = document.getElementById('comments-column');
   var saveFeedbackBtn = document.getElementById('save-feedback-btn');
@@ -863,7 +857,7 @@
   var commentInputContainer = null;
   var pendingSelection = null; // text: { type, text, range, rect, paragraph, charOffset, section } or image: { type, text, imgSrc, imgAlt, imgEl, rect, section }
 
-  // -- Utility functions --
+  // ── Utility functions ──
 
   function slugify(str) {
     return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -922,7 +916,7 @@
     return offset;
   }
 
-  // -- Highlight wrapping --
+  // ── Highlight wrapping ──
 
   function wrapRangeWithMark(range, commentId) {
     var mark = document.createElement('mark');
@@ -1004,7 +998,7 @@
     });
   }
 
-  // -- Image comment helpers --
+  // ── Image comment helpers ──
 
   function getImageForComment(commentData) {
     var imgs = prose.querySelectorAll('img');
@@ -1041,7 +1035,7 @@
     return prose.querySelector('mark[data-comment-id="' + commentData.id + '"]');
   }
 
-  // -- Comment cards --
+  // ── Comment cards ──
 
   function renderAllCards() {
     removeAllChildren(commentsColumn);
@@ -1172,7 +1166,7 @@
     }
   }
 
-  // -- Active comment highlighting --
+  // ── Active comment highlighting ──
 
   function setActiveComment(commentId) {
     activeCommentId = commentId;
@@ -1224,7 +1218,7 @@
     }
   }
 
-  // -- Floating "Add Comment" button --
+  // ── Floating "Add Comment" button ──
 
   function showAddCommentButton(x, y) {
     removeAddCommentButton();
@@ -1253,7 +1247,7 @@
     addCommentBtn = null;
   }
 
-  // -- Comment input --
+  // ── Comment input ──
 
   function showCommentInput() {
     removeAddCommentButton();
@@ -1382,7 +1376,7 @@
     requestAnimationFrame(function() { positionMarginCards(); });
   }
 
-  // -- Delete comment --
+  // ── Delete comment ──
 
   function deleteComment(commentId) {
     var commentData = comments.find(function(c) { return c.id === commentId; });
@@ -1398,7 +1392,7 @@
     renderAllCards();
   }
 
-  // -- Persistence --
+  // ── Persistence ──
 
   function saveToLocalStorage() {
     try {
@@ -1435,7 +1429,7 @@
     renderAllCards();
   }
 
-  // -- Save feedback to file --
+  // ── Save feedback to file ──
 
   function saveFeedback() {
     var exportData = {
@@ -1495,7 +1489,7 @@
     URL.revokeObjectURL(url);
   }
 
-  // -- Clear all comments --
+  // ── Clear all comments ──
 
   function clearAllComments() {
     if (comments.length === 0) return;
@@ -1515,7 +1509,7 @@
     renderAllCards();
   }
 
-  // -- Selection handling --
+  // ── Selection handling ──
 
   function handleMouseUp(e) {
     if (e.target.closest('.add-comment-btn, .comment-input-container, .comment-card, .comment-card-inline, .draft-banner')) {
@@ -1634,7 +1628,7 @@
     positionMarginCards();
   }
 
-  // -- Wire up events --
+  // ── Wire up events ──
 
   document.addEventListener('mouseup', handleMouseUp);
   document.addEventListener('click', handleClick);
@@ -1644,7 +1638,7 @@
   saveFeedbackBtn.addEventListener('click', saveFeedback);
   clearCommentsBtn.addEventListener('click', clearAllComments);
 
-  // -- Initialize --
+  // ── Initialize ──
 
   // Attach click handlers to all images in prose
   var proseImages = prose.querySelectorAll('img');

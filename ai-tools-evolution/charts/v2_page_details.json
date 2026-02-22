@@ -1,0 +1,106 @@
+{
+  "pages": [
+    {
+      "page": "landing",
+      "url": "https://podcast.bhavanaai.com/",
+      "title": "frontend",
+      "viewport": null,
+      "details": {
+        "backgroundColor": "oklch(1 0 0)",
+        "headings": [
+          {
+            "tag": "H1",
+            "text": "Podcast Summarizer",
+            "styles": {
+              "color": "oklch(0.145 0 0)",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "fontSize": "36px",
+              "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+              "fontWeight": "700",
+              "lineHeight": "40px",
+              "padding": "0px",
+              "margin": "0px 0px 24px"
+            }
+          }
+        ],
+        "buttons": [],
+        "paragraphs": [
+          {
+            "text": "Subscribe to your favorite podcasts and YouTube channels. Get AI-generated summaries delivered to yo",
+            "styles": {
+              "color": "oklch(0.556 0 0)",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "fontSize": "18px",
+              "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+              "fontWeight": "400",
+              "lineHeight": "28px",
+              "padding": "0px",
+              "margin": "0px 0px 24px"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "page": "auth",
+      "url": "https://podcast.bhavanaai.com/login",
+      "title": "frontend",
+      "details": {
+        "backgroundColor": "oklch(1 0 0)",
+        "headings": [],
+        "inputs": [
+          {
+            "type": "email",
+            "placeholder": "you@example.com",
+            "name": "email",
+            "styles": {
+              "color": "oklch(0.145 0 0)",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "fontSize": "14px",
+              "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+              "fontWeight": "400",
+              "padding": "4px 12px",
+              "margin": "0px",
+              "borderRadius": "8px",
+              "border": "1px solid oklch(0.922 0 0)"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send Magic Link",
+            "styles": {
+              "color": "oklch(0.985 0 0)",
+              "backgroundColor": "oklch(0.205 0 0)",
+              "fontSize": "14px",
+              "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+              "fontWeight": "500",
+              "padding": "8px 16px",
+              "margin": "0px",
+              "borderRadius": "8px",
+              "border": "0px solid oklch(0.922 0 0)"
+            }
+          }
+        ],
+        "formText": [
+          {
+            "tag": "LABEL",
+            "text": "Email"
+          }
+        ]
+      }
+    },
+    {
+      "page": "confirmation",
+      "url": "https://podcast.bhavanaai.com/login",
+      "title": "frontend",
+      "details": {
+        "backgroundColor": "oklch(1 0 0)",
+        "allText": "Podcast SummarizerSign InEnter your email to receive a magic linkEmailSending...",
+        "headings": [],
+        "paragraphs": []
+      }
+    }
+  ],
+  "magic_link_sent": true
+}

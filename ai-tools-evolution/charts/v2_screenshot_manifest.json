@@ -1,0 +1,58 @@
+[
+  {
+    "name": "v2_auth_dashboard.png",
+    "description": "Landing page after authentication",
+    "path": "/Users/varunr/projects/short_projects/ai-tools-evolution/charts/v2_auth_dashboard.png",
+    "url": "https://podcast.bhavanaai.com/channels",
+    "full_page": true
+  },
+  {
+    "name": "v2_auth_channels.png",
+    "description": "Channels/podcasts list page",
+    "path": "/Users/varunr/projects/short_projects/ai-tools-evolution/charts/v2_auth_channels.png",
+    "url": "https://podcast.bhavanaai.com/channels",
+    "full_page": true
+  },
+  {
+    "name": "v2_auth_podcast_detail.png",
+    "description": "Individual podcast/channel detail page",
+    "path": "/Users/varunr/projects/short_projects/ai-tools-evolution/charts/v2_auth_podcast_detail.png",
+    "url": "https://podcast.bhavanaai.com/channels",
+    "full_page": true
+  },
+  {
+    "name": "v2_auth_summary.png",
+    "description": "Full episode summary page",
+    "path": "/Users/varunr/projects/short_projects/ai-tools-evolution/charts/v2_auth_summary.png",
+    "url": "https://podcast.bhavanaai.com/channels",
+    "full_page": true
+  },
+  {
+    "name": "v2_auth_summary_scrolled.png",
+    "description": "Episode summary scrolled view",
+    "path": "/Users/varunr/projects/short_projects/ai-tools-evolution/charts/v2_auth_summary_scrolled.png",
+    "url": "https://podcast.bhavanaai.com/channels",
+    "full_page": false
+  },
+  {
+    "name": "v2_auth_home.png",
+    "description": "Main dashboard/home page",
+    "path": "/Users/varunr/projects/short_projects/ai-tools-evolution/charts/v2_auth_home.png",
+    "url": "https://podcast.bhavanaai.com/",
+    "full_page": true
+  },
+  {
+    "name": "v2_auth_admin.png",
+    "description": "Admin page",
+    "path": "/Users/varunr/projects/short_projects/ai-tools-evolution/charts/v2_auth_admin.png",
+    "url": "https://podcast.bhavanaai.com/admin",
+    "full_page": true
+  },
+  {
+    "name": "v2_auth_final_state.png",
+    "description": "Final application state",
+    "path": "/Users/varunr/projects/short_projects/ai-tools-evolution/charts/v2_auth_final_state.png",
+    "url": "https://podcast.bhavanaai.com/admin",
+    "full_page": true
+  }
+]

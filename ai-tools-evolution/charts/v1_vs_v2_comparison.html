@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #0d1117; color: #e6edf3; padding: 40px; }
+  .chart-container { max-width: 800px; margin: 0 auto; }
+  h2 { text-align: center; font-size: 1.5rem; margin-bottom: 32px; font-weight: 600; }
+  .comparison-row { display: flex; align-items: center; margin-bottom: 20px; }
+  .label { width: 160px; font-size: 0.85rem; color: #8b949e; text-align: right; padding-right: 16px; flex-shrink: 0; }
+  .bars { flex: 1; display: flex; gap: 8px; flex-direction: column; }
+  .bar-wrapper { display: flex; align-items: center; gap: 8px; }
+  .bar { height: 28px; border-radius: 4px; display: flex; align-items: center; padding-left: 10px; font-size: 0.8rem; font-weight: 500; min-width: 40px; transition: width 0.6s ease; }
+  .bar.v1 { background: linear-gradient(90deg, #da3633, #f85149); }
+  .bar.v2 { background: linear-gradient(90deg, #238636, #3fb950); }
+  .bar-label { font-size: 0.75rem; color: #8b949e; width: 24px; flex-shrink: 0; }
+  .legend { display: flex; justify-content: center; gap: 32px; margin-bottom: 24px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+  .legend-dot.v1 { background: #f85149; }
+  .legend-dot.v2 { background: #3fb950; }
+  .section-divider { border: none; border-top: 1px solid #21262d; margin: 32px 0; }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+  .stat-card { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: 20px; text-align: center; }
+  .stat-value { font-size: 2rem; font-weight: 700; }
+  .stat-value.v1-color { color: #f85149; }
+  .stat-value.v2-color { color: #3fb950; }
+  .stat-label { font-size: 0.8rem; color: #8b949e; margin-top: 4px; }
+  .stat-sublabel { font-size: 0.7rem; color: #484f58; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="chart-container">
+  <h2>V1 vs V2: By the Numbers</h2>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot v1"></div> V1 (Mar-Nov 2025)</div>
+    <div class="legend-item"><div class="legend-dot v2"></div> V2 (Dec 2025-Jan 2026)</div>
+  </div>
+
+  <div class="comparison-row">
+    <div class="label">Python Files</div>
+    <div class="bars">
+      <div class="bar-wrapper"><div class="bar-label">v1</div><div class="bar v1" style="width: 53%">80 files</div></div>
+      <div class="bar-wrapper"><div class="bar-label">v2</div><div class="bar v2" style="width: 57%">86 files (src/)</div></div>
+    </div>
+  </div>
+
+  <div class="comparison-row">
+    <div class="label">Production LOC</div>
+    <div class="bars">
+      <div class="bar-wrapper"><div class="bar-label">v1</div><div class="bar v1" style="width: 40%">~10,000</div></div>
+      <div class="bar-wrapper"><div class="bar-label">v2</div><div class="bar v2" style="width: 88%">~22,000</div></div>
+    </div>
+  </div>
+
+  <div class="comparison-row">
+    <div class="label">Test LOC</div>
+    <div class="bars">
+      <div class="bar-wrapper"><div class="bar-label">v1</div><div class="bar v1" style="width: 4%">~0</div></div>
+      <div class="bar-wrapper"><div class="bar-label">v2</div><div class="bar v2" style="width: 88%">~22,000</div></div>
+    </div>
+  </div>
+
+  <div class="comparison-row">
+    <div class="label">Dependencies</div>
+    <div class="bars">
+      <div class="bar-wrapper"><div class="bar-label">v1</div><div class="bar v1" style="width: 100%">50 packages</div></div>
+      <div class="bar-wrapper"><div class="bar-label">v2</div><div class="bar v2" style="width: 40%">~20 packages</div></div>
+    </div>
+  </div>
+
+  <div class="comparison-row">
+    <div class="label">Design Documents</div>
+    <div class="bars">
+      <div class="bar-wrapper"><div class="bar-label">v1</div><div class="bar v1" style="width: 2%">0</div></div>
+      <div class="bar-wrapper"><div class="bar-label">v2</div><div class="bar v2" style="width: 94%">47</div></div>
+    </div>
+  </div>
+
+  <div class="comparison-row">
+    <div class="label">Summarizers</div>
+    <div class="bars">
+      <div class="bar-wrapper"><div class="bar-label">v1</div><div class="bar v1" style="width: 80%">4 (1 used)</div></div>
+      <div class="bar-wrapper"><div class="bar-label">v2</div><div class="bar v2" style="width: 20%">1</div></div>
+    </div>
+  </div>
+
+  <div class="comparison-row">
+    <div class="label">Download Methods</div>
+    <div class="bars">
+      <div class="bar-wrapper"><div class="bar-label">v1</div><div class="bar v1" style="width: 80%">4 strategies</div></div>
+      <div class="bar-wrapper"><div class="bar-label">v2</div><div class="bar v2" style="width: 40%">2 (yt-dlp + HTTP)</div></div>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-value v1-color">30</div>
+      <div class="stat-label">V1 Commits</div>
+      <div class="stat-sublabel">over 8 months</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value v2-color">290</div>
+      <div class="stat-label">V2 Commits</div>
+      <div class="stat-sublabel">in 5 weeks</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value v2-color">78</div>
+      <div class="stat-label">Peak Day</div>
+      <div class="stat-sublabel">commits on Christmas</div>
+    </div>
+  </div>
+
+  <div class="stat-grid" style="margin-top: 16px;">
+    <div class="stat-card">
+      <div class="stat-value v1-color">5,739</div>
+      <div class="stat-label">Largest V1 File</div>
+      <div class="stat-sublabel">summaries.py (lines)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value v2-color">12</div>
+      <div class="stat-label">Code Reviews</div>
+      <div class="stat-sublabel">phone-a-friend consultations</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value v2-color">$50-80</div>
+      <div class="stat-label">Monthly Cost</div>
+      <div class="stat-sublabel">for 100 episodes/mo</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

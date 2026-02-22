@@ -1,0 +1,16 @@
+{
+  "name": "ai-tools-evolution",
+  "version": "1.0.0",
+  "description": "**Summary:** How I went from copy-pasting ChatGPT output to orchestrating multi-model architecture reviews -- told through two versions of the same podcast summarizer.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "playwright": "^1.58.2"
+  }
+}
