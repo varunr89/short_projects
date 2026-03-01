@@ -27,6 +27,11 @@ short_projects/
 - Use **kebab-case** for project directory names (e.g., `india-air-quality`, `king-county-housing-heatmap`).
 - Each project is self-contained: its own data, notebooks, outputs, and dependencies.
 
+### Graduation to Own Repo
+- If a project exceeds **500 lines of code** (excluding markdown, data, and config), it has outgrown short_projects and should be promoted to its own repository under `/Users/varunr/projects/<project-name>/`.
+- Move the entire project directory out, initialize a new git repo, and remove it from short_projects.
+- Add a one-line entry to the root `README.md` noting the project graduated with a link to its new repo.
+
 ### Required Files per Project
 - **`README.md`** -- Must include: one-line summary, data source(s), methodology overview, and key findings.
 - **`post/draft.md`** -- The blog post draft. This is the primary deliverable of every project.
