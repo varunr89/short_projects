@@ -11,6 +11,12 @@ A collection of short analysis projects, each resulting in a blog post with find
 | [king-county-housing-heatmap](king-county-housing-heatmap/) | Interactive housing cost heatmap for King County, WA | In progress |
 | [ai-productivity-gap](ai-productivity-gap/) | Why AI isn't moving the enterprise productivity needle | In progress |
 
+## Graduated Projects
+
+| Project | Description | New Repo |
+|---------|-------------|----------|
+| tesla-fleet-telemetry | Streaming telemetry data pipeline for Tesla vehicles ($9/mo) | [varunr89/tesla-fleet-logger](https://github.com/varunr89/tesla-fleet-logger) |
+
 ## Structure
 
 Each project follows a standard layout:
